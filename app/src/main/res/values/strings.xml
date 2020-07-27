@@ -48,7 +48,6 @@
     <string name="your_email">Your email</string>
     <string name="your_username">Your username</string>
     <string name="register">Register</string>
-    <string name="search">Search</string>
     <string name="update_password">Update password</string>
     <string name="filter_asc">ASC</string>
     <string name="filter_desc">DESC</string>
@@ -77,5 +76,6 @@
     <string name="text_register">Register</string>
     <string name="text_forgot_password">Forgot password</string>
     <string name="process_death_state">process_death_state</string>
+    <string name="search">Search</string>
 
 </resources>

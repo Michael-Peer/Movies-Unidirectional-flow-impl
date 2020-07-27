@@ -18,6 +18,9 @@ class MoviesRecyclerViewAdapter(private var onMovieClickListener: OnMovieClickLi
         DiffUtilCallBack()
     ) {
 
+    private var listRef: List<Movie> = ArrayList()
+
+
     fun getCurrentItem(position: Int): Movie? {
         if (currentList.size > 0) {
             return getItem(position)
@@ -35,6 +38,27 @@ class MoviesRecyclerViewAdapter(private var onMovieClickListener: OnMovieClickLi
     override fun onBindViewHolder(holder: MoviesViewHolder, position: Int) {
         val item = getItem(position)
         holder.bind(item)
+    }
+
+    fun modifyList(list: List<Movie>) {
+        listRef = list
+        submitList(list)
+    }
+
+
+    fun filter(query: String?) {
+
+        var filteredList = ArrayList<Movie>()
+
+        if (!query.isNullOrEmpty()) {
+            filteredList.addAll(listRef.filter { movie ->
+                movie.title!!.toLowerCase().contains(query.toString().toLowerCase().trim())
+            })
+        } else {
+            filteredList.addAll(listRef)
+        }
+
+        submitList(filteredList)
     }
 
     class MoviesViewHolder(itemView: View, private var onMovieClickListener: OnMovieClickListener) :

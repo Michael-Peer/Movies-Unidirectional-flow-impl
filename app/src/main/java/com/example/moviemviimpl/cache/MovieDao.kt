@@ -20,7 +20,7 @@ interface MovieDao {
         ORDER BY title
     """
     )
-    suspend fun getAllMoviesFromDBOrderedByTitle()
+    suspend fun getAllMoviesFromDBOrderedByTitle(): List<Movie>
 
     @Query(
         """
@@ -28,5 +28,5 @@ interface MovieDao {
         ORDER BY releaseDate
     """
     )
-    suspend fun getAllMoviesFromDBOrderedByYear()
+    suspend fun getAllMoviesFromDBOrderedByYear(): List<Movie>
 }

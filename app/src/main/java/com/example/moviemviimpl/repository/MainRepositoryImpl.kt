@@ -3,6 +3,7 @@ package com.example.moviemviimpl.repository
 import android.util.Log
 import com.example.moviemviimpl.api.MoviesApi
 import com.example.moviemviimpl.cache.MovieDao
+import com.example.moviemviimpl.cache.returnOrderedMovies
 import com.example.moviemviimpl.model.Movie
 import com.example.moviemviimpl.model.Movies
 import com.example.moviemviimpl.state.MainScreenViewState
@@ -11,19 +12,25 @@ import com.example.moviemviimpl.utils.Constants
 import com.example.moviemviimpl.utils.DataState
 import com.example.moviemviimpl.utils.StateEvent
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@FlowPreview
 class MainRepositoryImpl
 @Inject
 constructor(
     private val moviesApi: MoviesApi,
     private val movieDao: MovieDao
+
 ) : MainRepository {
     private val TAG = ""
-    override fun getMovies(stateEvent: StateEvent): Flow<DataState<MainScreenViewState>> {
+    override fun getMovies(
+        stateEvent: StateEvent,
+        order: String
+    ): Flow<DataState<MainScreenViewState>> {
 
         return object : NetworkBoundResource<Movies, List<Movie>, MainScreenViewState>(
             dispatcher = Dispatchers.IO,
@@ -32,9 +39,8 @@ constructor(
                 moviesApi.getAllMovies(Constants.API_KEY)
             },
             cacheCall = {
-                movieDao.getAllMoviesFromDB(
-
-                )
+//                movieDao.getAllMoviesFromDBOrderedByTitle()
+                movieDao.returnOrderedMovies(order)
             }
         ) {
             override suspend fun updateCache(networkObject: Movies) {
@@ -66,6 +72,7 @@ constructor(
                 val viewState = MainScreenViewState(
 //                    movies = resultObj
                     moviesFields = MoviesFields(
+                        order = order,
                         movies = resultObj
                     )
                 )

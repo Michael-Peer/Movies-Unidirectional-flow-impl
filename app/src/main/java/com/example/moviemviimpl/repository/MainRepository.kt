@@ -6,5 +6,5 @@ import com.example.moviemviimpl.utils.StateEvent
 import kotlinx.coroutines.flow.Flow
 
 interface MainRepository  {
-    fun getMovies(stateEvent: StateEvent): Flow<DataState<MainScreenViewState>>
+    fun getMovies(stateEvent: StateEvent, order: String): Flow<DataState<MainScreenViewState>>
 }

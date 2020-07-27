@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.*
 import android.widget.RadioGroup
 import android.widget.TextView
+import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -114,8 +115,7 @@ constructor(
         mainViewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
             if (viewState != null) {
 //                moviesRecyclerViewAdapter.submitList(viewState.movies)
-                moviesRecyclerViewAdapter.submitList(viewState.moviesFields.movies)
-
+                viewState.moviesFields.movies?.let { moviesRecyclerViewAdapter.modifyList(it) }
             }
 
         })
@@ -157,46 +157,6 @@ constructor(
 
         })
 
-//        mainViewModel.dataState.observe(viewLifecycleOwner, Observer { dataState ->
-//
-//            Log.d(TAG, "onViewCreated: DataState $dataState ")
-//
-//            /**
-//             *
-//             * Handle Error & Loading in the main activity
-//             *
-//             */
-//            dataStateListener.onDataStateChange(dataState)
-//
-//
-//            /**
-//             *
-//             * Handle Data
-//             *
-//             */
-//            dataState.data?.let { mainScreenViewStateEvent ->
-//                mainScreenViewStateEvent.getContentIfNotHandled()?.let { mainViewState ->
-//                    mainViewState.movies?.let { movies ->
-//                        //set movies data
-//                        mainViewModel.setMoviedData(movies)
-//                    }
-//                }
-//
-//
-//            }
-//
-//
-//        })
-//
-//        mainViewModel.viewState.observe(viewLifecycleOwner, Observer {
-//
-//            Log.d(TAG, "inside viewState observer $it")
-//
-//            it.movies?.let { movies ->
-//                //set movies to recycler view
-//                moviesRecyclerViewAdapter.submitList(movies)
-//            }
-//        })
     }
 
     fun triggerGetMoviesEvent() {
@@ -237,8 +197,23 @@ constructor(
      *
      * */
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
+//        super.onCreateOptionsMenu(menu, inflater)
         inflater.inflate(R.menu.filter_menu, menu)
+        val menuItem = menu.findItem(R.id.filter_menu_search)
+        val searchView = menuItem.actionView as SearchView
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                Log.i(TAG, "onQueryTextChange: " + newText);
+                moviesRecyclerViewAdapter.filter(newText);
+
+                return false;
+            }
+        })
     }
 
     /**
@@ -276,6 +251,7 @@ constructor(
             /**
              *
              * Here we set the V in the correct check box
+             *
              * **/
             view.findViewById<RadioGroup>(R.id.filter_group).apply {
                 when (order) {
@@ -296,6 +272,13 @@ constructor(
             view.findViewById<TextView>(R.id.positive_button).setOnClickListener {
                 Log.d(TAG, "showFilterAndOrderDialog: Applying Filters")
 
+
+                /**
+                 *
+                 *
+                 * newFilter = ORDER_BY_TITLE / ORDER_BY_YEAR
+                 *
+                 * **/
                 val newFilter =
                     when (view.findViewById<RadioGroup>(R.id.filter_group).checkedRadioButtonId) {
                         R.id.order_title -> {
@@ -310,6 +293,22 @@ constructor(
                             Constants.ORDER_BY_TITLE
                         }
                     }
+
+                Log.d(TAG, "NEW1 FILTER : $order")
+                Log.d(TAG, "NEW2 FILTER : $newFilter")
+
+                /***
+                 *
+                 * If it is the same, there is no point to make api call and cache call again
+                 *  order = the initial order
+                 *  newFilter = the filter that the user choose
+                 *
+                 * **/
+                if (order == newFilter) {
+                    Log.d(TAG, "showFilterAndOrderDialog: Inside if statment")
+                    dialog.dismiss()
+                }
+
 
 
                 mainViewModel.apply {
@@ -336,14 +335,26 @@ constructor(
     }
 
     private fun onMovieFilter() {
-        resetUI()
+        Log.d(TAG, "onMovieFilter: ")
+        mainViewModel.loadOrderedPage().let {
+//            resetUI()
+        }
+
+
     }
 
 
     private fun resetUI() {
+        Log.d(TAG, "resetUI: ")
+
+        Log.d(TAG, "resetUI: ${movies_recycler_view.scrollState}")
         movies_recycler_view.smoothScrollToPosition(0)
+
         uiCommunicationListener.hideSoftKeyboard()
+        focusable_view.requestFocus()
+
     }
+
 
     /**
      *

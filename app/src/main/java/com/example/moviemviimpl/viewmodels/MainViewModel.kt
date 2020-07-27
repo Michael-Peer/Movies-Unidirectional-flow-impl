@@ -28,6 +28,8 @@ constructor(
     private val sharedPreferences: SharedPreferences,
     private val sharedPreferencesEditor: SharedPreferences.Editor
 ) : BaseViewModel() {
+
+
     private val TAG = "MainViewModel"
 
     private val _viewState: MutableLiveData<MainScreenViewState> = MutableLiveData()
@@ -38,18 +40,22 @@ constructor(
     val viewState: LiveData<MainScreenViewState>
         get() = _viewState
 
+    init {
+        //(key, defValue)
+        setMoviesFilter(
+            sharedPreferences.getString(
+                PreferenceKeys.BLOG_FILTER, Constants.ORDER_BY_TITLE
+            )
+        )
+    }
+
+
 //    val dataState: LiveData<DataState<MainScreenViewState>> = Transformations
 //        .switchMap(_stateEvent) { stateEvent ->
 //            handleStateEvent(stateEvent)
 //        }
 
 
-//    init {
-//        setMoviesFilter(sharedPreferences.getString(
-//            PreferenceKeys.BLOG_FILTER,
-//
-//        ))
-//    }
 
     private val dataChannelManager: DataChannelManager<MainScreenViewState> =
         object : DataChannelManager<MainScreenViewState>() {
@@ -92,7 +98,7 @@ constructor(
         _viewState.value = updatedViewState
     }
 
-    fun getCurrentViewStateOrNew(): MainScreenViewState {
+    private fun getCurrentViewStateOrNew(): MainScreenViewState {
         val viewState = viewState.value?.let {
             it
         } ?: MainScreenViewState()
@@ -124,9 +130,13 @@ constructor(
     fun setStateEvent(stateEvent: StateEvent) {
         val job: Flow<DataState<MainScreenViewState>> = when (stateEvent) {
 
-            is MainScreenStateEvent.GetAllMovies -> {
-                mainRepository.getMovies(stateEvent = stateEvent)
+            is MainScreenStateEvent.GetAllMovies, MainScreenStateEvent.OrderByMovies -> {
+                mainRepository.getMovies(stateEvent = stateEvent, order = getOrder())
             }
+
+//            is  -> {
+//                mainRepository.getMovies(stateEvent, getOrder())
+//            }
             else -> {
                 flow {
                     emit(
@@ -178,17 +188,42 @@ constructor(
     /**
      *
      * Save the filter that selected by the user to shared preferences
+     *
+     * key storing:
+     * unique key to get access to the store
+     * PreferenceKeys.BLOG_FILTER = com.example.moviemviimpl.MOVIE_FILTER
+     *
+     * filter  = Constants.ORDER_BY_YEAR/Constants.ORDER_BY_TITLE
+     *
      * **/
     fun saveFilterOptions(filter: String) {
+        Log.d(TAG, "saveFilterOptions: $filter")
+
         sharedPreferencesEditor.putString(PreferenceKeys.BLOG_FILTER, filter)
         sharedPreferencesEditor.apply()
     }
 
+
+    /**
+     *
+     * filter  = Constants.ORDER_BY_YEAR/Constants.ORDER_BY_TITLE
+     *
+     * Here we set the order field in movies field inside the view state to the filter we get from the user
+     * then we update the view state, to the most updayted view state
+     *
+     * **/
     fun setMoviesFilter(filter: String?) {
+        Log.d(TAG, "setMoviesFilter: $filter")
         filter?.let {
             val updatedViewState = getCurrentViewStateOrNew()
             updatedViewState.moviesFields.order = filter
             setViewState(updatedViewState)
         }
     }
+
+    fun loadOrderedPage() {
+        setStateEvent(MainScreenStateEvent.GetAllMovies)
+    }
+
+
 }

@@ -15,5 +15,14 @@ sealed class MainScreenStateEvent : StateEvent {
         }
     }
 
+    object OrderByMovies : MainScreenStateEvent() {
+        override fun errorInfo(): String {
+            return "Enable to filter movies"
+        }
+
+        override fun toString(): String {
+            return "OrderByMovies"
+        }
+    }
 
 }
