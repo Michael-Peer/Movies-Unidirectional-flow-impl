@@ -1,6 +1,19 @@
 package com.example.moviemviimpl.state
 
-sealed class MainScreenStateEvent {
+import com.example.moviemviimpl.utils.StateEvent
 
-    object GetAllMovies : MainScreenStateEvent()
+sealed class MainScreenStateEvent : StateEvent {
+
+    object GetAllMovies : MainScreenStateEvent() {
+
+        override fun errorInfo(): String {
+            return "Error While Trying to get movies"
+        }
+
+        override fun toString(): String {
+            return "GetAllMovies"
+        }
+    }
+
+
 }

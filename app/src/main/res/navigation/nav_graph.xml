@@ -7,7 +7,23 @@
 
     <fragment
         android:id="@+id/mainFragment"
-        android:name="com.example.moviemviimpl.MainFragment"
+        android:name="com.example.moviemviimpl.ui.MainFragment"
         android:label="fragment_main"
-        tools:layout="@layout/fragment_main" />
+        tools:layout="@layout/fragment_main" >
+        <action
+            android:id="@+id/action_mainFragment_to_detailFragment"
+            app:destination="@id/detailFragment" />
+        <argument
+            android:name="Movie"
+            app:argType="com.example.moviemviimpl.model.Movie" />
+    </fragment>
+    <fragment
+        android:id="@+id/detailFragment"
+        android:name="com.example.moviemviimpl.ui.DetailFragment"
+        android:label="fragment_detail"
+        tools:layout="@layout/fragment_detail" >
+        <argument
+            android:name="Movie"
+            app:argType="com.example.moviemviimpl.model.Movie" />
+    </fragment>
 </navigation>

@@ -3,8 +3,13 @@ package com.example.moviemviimpl
 import android.app.Application
 import com.example.moviemviimpl.di.AppComponent
 import com.example.moviemviimpl.di.DaggerAppComponent
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.FlowPreview
 
-class BaseApplication : Application() {
+@FlowPreview
+@ExperimentalCoroutinesApi
+open class BaseApplication : Application() {
+
 
     lateinit var appComponent: AppComponent
 
@@ -13,7 +18,7 @@ class BaseApplication : Application() {
         initAppComponent()
     }
 
-    private fun initAppComponent() {
+    open fun initAppComponent(){
         appComponent = DaggerAppComponent
             .factory()
             .create(this)
