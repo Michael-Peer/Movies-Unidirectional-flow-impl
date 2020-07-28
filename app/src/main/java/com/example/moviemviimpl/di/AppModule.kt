@@ -7,6 +7,8 @@ import com.example.moviemviimpl.BaseApplication
 import com.example.moviemviimpl.api.MoviesApi
 import com.example.moviemviimpl.cache.Database
 import com.example.moviemviimpl.cache.MovieDao
+import com.example.moviemviimpl.repository.DetailRepository
+import com.example.moviemviimpl.repository.DetailRepositoryImpl
 import com.example.moviemviimpl.repository.MainRepository
 import com.example.moviemviimpl.repository.MainRepositoryImpl
 import com.example.moviemviimpl.utils.Constants
@@ -73,6 +75,13 @@ object AppModule {
     @Provides
     fun provideMainRepository(moviesApi: MoviesApi, moviesDao: MovieDao): MainRepository {
         return MainRepositoryImpl(moviesApi, moviesDao)
+    }
+
+    @JvmStatic
+    @Singleton
+    @Provides
+    fun provideDetailRepository(moviesApi: MoviesApi, moviesDao: MovieDao): DetailRepository {
+        return DetailRepositoryImpl(moviesApi, moviesDao)
     }
 
     @JvmStatic

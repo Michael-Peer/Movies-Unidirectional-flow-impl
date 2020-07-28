@@ -2,8 +2,6 @@ package com.example.moviemviimpl.viewmodels
 
 import android.content.SharedPreferences
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.example.moviemviimpl.model.Movie
 import com.example.moviemviimpl.repository.MainRepository
 import com.example.moviemviimpl.state.MainScreenStateEvent
@@ -27,18 +25,10 @@ constructor(
     private val mainRepository: MainRepository,
     private val sharedPreferences: SharedPreferences,
     private val sharedPreferencesEditor: SharedPreferences.Editor
-) : BaseViewModel() {
-
+) : BaseViewModel<MainScreenViewState>() {
 
     private val TAG = "MainViewModel"
 
-    private val _viewState: MutableLiveData<MainScreenViewState> = MutableLiveData()
-
-    private val _stateEvent: MutableLiveData<MainScreenStateEvent> = MutableLiveData()
-
-
-    val viewState: LiveData<MainScreenViewState>
-        get() = _viewState
 
     init {
         //(key, defValue)
@@ -50,6 +40,19 @@ constructor(
     }
 
 
+
+    //IN BASE
+//    private val _viewState: MutableLiveData<MainScreenViewState> = MutableLiveData()
+
+//    private val _stateEvent: MutableLiveData<MainScreenStateEvent> = MutableLiveData()
+
+
+//    val viewState: LiveData<MainScreenViewState>
+//        get() = _viewState
+
+
+
+
 //    val dataState: LiveData<DataState<MainScreenViewState>> = Transformations
 //        .switchMap(_stateEvent) { stateEvent ->
 //            handleStateEvent(stateEvent)
@@ -57,29 +60,19 @@ constructor(
 
 
 
-    private val dataChannelManager: DataChannelManager<MainScreenViewState> =
-        object : DataChannelManager<MainScreenViewState>() {
-            override fun handleNewData(data: MainScreenViewState) {
-//                data.movies.let { movies ->
-                data.moviesFields.movies.let { movies ->
-                    movies.let { moviesList ->
-                        setMoviedData(moviesList!!)
-                    }
-                }
-            }
-        }
 
-    val numActiveJobs: LiveData<Int> = dataChannelManager.numActiveJobs
 
-    val stateMessage: LiveData<StateMessage?>
-        get() = dataChannelManager.messageStack.stateMessage
-
-    fun launchJob(
-        stateEvent: StateEvent,
-        jobFunction: Flow<DataState<MainScreenViewState>>
-    ) {
-        dataChannelManager.launchJob(stateEvent, jobFunction)
-    }
+//    val numActiveJobs: LiveData<Int> = dataChannelManager.numActiveJobs
+//
+//    val stateMessage: LiveData<StateMessage?>
+//        get() = dataChannelManager.messageStack.stateMessage
+//
+//    fun launchJob(
+//        stateEvent: StateEvent,
+//        jobFunction: Flow<DataState<MainScreenViewState>>
+//    ) {
+//        dataChannelManager.launchJob(stateEvent, jobFunction)
+//    }
 
 
 //    private fun handleStateEvent(stateEvent: MainScreenStateEvent): LiveData<DataState<MainScreenViewState>> {
@@ -91,28 +84,28 @@ constructor(
 //        }
 //    }
 
-    fun setMoviedData(movies: List<Movie>) {
+    private fun setMovieData(movies: List<Movie>) {
         val updatedViewState = getCurrentViewStateOrNew()
 //        updatedViewState.movies = movies
         updatedViewState.moviesFields.movies = movies
-        _viewState.value = updatedViewState
+        setViewState(updatedViewState)
     }
 
-    private fun getCurrentViewStateOrNew(): MainScreenViewState {
-        val viewState = viewState.value?.let {
-            it
-        } ?: MainScreenViewState()
-        return viewState
-    }
+//    private fun getCurrentViewStateOrNew(): MainScreenViewState {
+//        val viewState = viewState.value?.let {
+//            it
+//        } ?: MainScreenViewState()
+//        return viewState
+//    }
 
     /**
      *
      * here we set the view state
      *
      * **/
-    fun setViewState(viewState: MainScreenViewState) {
-        _viewState.value = viewState
-    }
+//    fun setViewState(viewState: MainScreenViewState) {
+//        _viewState.value = viewState
+//    }
 
     /**
      *
@@ -127,54 +120,26 @@ constructor(
 //        _stateEvent.value = event
 //    }
 
-    fun setStateEvent(stateEvent: StateEvent) {
-        val job: Flow<DataState<MainScreenViewState>> = when (stateEvent) {
 
-            is MainScreenStateEvent.GetAllMovies, MainScreenStateEvent.OrderByMovies -> {
-                mainRepository.getMovies(stateEvent = stateEvent, order = getOrder())
-            }
-
-//            is  -> {
-//                mainRepository.getMovies(stateEvent, getOrder())
-//            }
-            else -> {
-                flow {
-                    emit(
-                        DataState.error<MainScreenViewState>(
-                            response = Response(
-                                message = INVALID_STATE_EVENT,
-                                uiComponentType = UIComponentType.None,
-                                messageType = MessageType.Error
-                            ),
-                            stateEvent = stateEvent
-                        )
-                    )
-                }
-            }
-
-        }
-        launchJob(stateEvent, job)
-    }
-
-    fun setupChannel() = dataChannelManager.setupChannel()
-
-
-    fun clearStateMessage(index: Int = 0) {
-        dataChannelManager.clearStateMessage(index)
-    }
-
-    fun areAnyJobsActive(): Boolean {
-        return dataChannelManager.numActiveJobs.value?.let {
-            it > 0
-        } ?: false
-    }
-
-    fun cancelActiveJobs() {
-        if (areAnyJobsActive()) {
-            Log.d(TAG, "cancel active jobs: ${dataChannelManager.numActiveJobs.value ?: 0}")
-            dataChannelManager.cancelJobs()
-        }
-    }
+//    fun setupChannel() = dataChannelManager.setupChannel()
+//
+//
+//    fun clearStateMessage(index: Int = 0) {
+//        dataChannelManager.clearStateMessage(index)
+//    }
+//
+//    fun areAnyJobsActive(): Boolean {
+//        return dataChannelManager.numActiveJobs.value?.let {
+//            it > 0
+//        } ?: false
+//    }
+//
+//    fun cancelActiveJobs() {
+//        if (areAnyJobsActive()) {
+//            Log.d(TAG, "cancel active jobs: ${dataChannelManager.numActiveJobs.value ?: 0}")
+//            dataChannelManager.cancelJobs()
+//        }
+//    }
 
     override fun onCleared() {
         super.onCleared()
@@ -224,6 +189,97 @@ constructor(
     fun loadOrderedPage() {
         setStateEvent(MainScreenStateEvent.GetAllMovies)
     }
+
+    override fun handleNewData(data: MainScreenViewState) {
+        data.moviesFields.let { moviesFields ->
+            moviesFields.movies?.let { movies ->
+                setMovieData(movies)
+            }
+        }
+    }
+
+//    private fun handleData(data: MainScreenViewState) {
+//        data.moviesFields.let { moviesFields ->
+//            moviesFields.movies?.let { movies ->
+//                setMoviedData(movies)
+//            }
+//        }
+//    }
+
+    //    private val dataChannelManager: DataChannelManager<MainScreenViewState> =
+//        object : DataChannelManager<MainScreenViewState>() {
+//            override fun handleNewData(data: MainScreenViewState) {
+//                handleData(data)
+////                data.movies.let { movies ->
+////                data.moviesFields.movies.let { movies ->
+////                    movies.let { moviesList ->
+////                        setMoviedData(moviesList!!)
+////                    }
+////                }
+//            }
+//        }
+
+    override fun initNewViewState(): MainScreenViewState {
+        return MainScreenViewState()
+    }
+
+    override fun setStateEvent(stateEvent: StateEvent) {
+        val job: Flow<DataState<MainScreenViewState>> = when (stateEvent) {
+
+            is MainScreenStateEvent.GetAllMovies, MainScreenStateEvent.OrderByMovies -> {
+                mainRepository.getMovies(stateEvent = stateEvent, order = getOrder())
+            }
+
+//            is  -> {
+//                mainRepository.getMovies(stateEvent, getOrder())
+//            }
+            else -> {
+                flow {
+                    emit(
+                        DataState.error<MainScreenViewState>(
+                            response = Response(
+                                message = INVALID_STATE_EVENT,
+                                uiComponentType = UIComponentType.None,
+                                messageType = MessageType.Error
+                            ),
+                            stateEvent = stateEvent
+                        )
+                    )
+                }
+            }
+
+        }
+        launchJob(stateEvent, job)
+    }
+
+//        fun setStateEvent(stateEvent: StateEvent) {
+//        val job: Flow<DataState<MainScreenViewState>> = when (stateEvent) {
+//
+//            is MainScreenStateEvent.GetAllMovies, MainScreenStateEvent.OrderByMovies -> {
+//                mainRepository.getMovies(stateEvent = stateEvent, order = getOrder())
+//            }
+//
+////            is  -> {
+////                mainRepository.getMovies(stateEvent, getOrder())
+////            }
+//            else -> {
+//                flow {
+//                    emit(
+//                        DataState.error<MainScreenViewState>(
+//                            response = Response(
+//                                message = INVALID_STATE_EVENT,
+//                                uiComponentType = UIComponentType.None,
+//                                messageType = MessageType.Error
+//                            ),
+//                            stateEvent = stateEvent
+//                        )
+//                    )
+//                }
+//            }
+//
+//        }
+//        launchJob(stateEvent, job)
+//    }
 
 
 }

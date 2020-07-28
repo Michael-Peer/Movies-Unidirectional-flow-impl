@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.callbacks.onDismiss
 import com.example.moviemviimpl.BaseApplication
@@ -185,11 +186,10 @@ class MainActivity : AppCompatActivity(), UICommunicationListener {
 
 //    abstract override fun displayProgressBar(isLoading: Boolean)
 
-    override fun displayProgressBar(bool: Boolean){
-        if(bool){
+    override fun displayProgressBar(bool: Boolean) {
+        if (bool) {
             progress_bar.visibility = View.VISIBLE
-        }
-        else{
+        } else {
             progress_bar.visibility = View.GONE
         }
     }
