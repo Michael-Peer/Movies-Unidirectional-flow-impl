@@ -1,5 +1,6 @@
 package com.example.moviemviimpl.repository
 
+import android.util.Log
 import com.bumptech.glide.load.HttpException
 import com.example.moviemviimpl.utils.*
 import com.example.moviemviimpl.utils.Constants.CACHE_TIMEOUT
@@ -13,19 +14,22 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeout
 import java.io.IOException
 
-private val TAG: String = "AppDebug"
+private val TAG: String = "SafeCall"
 
 suspend fun <T> safeApiCall(
     dispatcher: CoroutineDispatcher,
     apiCall: suspend () -> T?
 ): ApiResult<T?> {
+    Log.d(TAG, "safeApiCall: ")
     return withContext(dispatcher) {
         try {
-            // throws TimeoutCancellationException
+            Log.d(TAG, "safeApiCall: try")
+//             throws TimeoutCancellationException
 //            withTimeout(NETWORK_TIMEOUT){
                 ApiResult.Success(apiCall.invoke())
 //            }
         } catch (throwable: Throwable) {
+            Log.d(TAG, "safeApiCall: cactch")
             throwable.printStackTrace()
             when (throwable) {
                 is TimeoutCancellationException -> {

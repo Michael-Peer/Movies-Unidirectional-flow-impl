@@ -10,10 +10,8 @@ data class Backdrop(
     val filePath: String?,
     @SerializedName("height")
     val height: Int?,
-    @SerializedName("iso_639_1")
-    val iso6391: Any?,
     @SerializedName("vote_average")
-    val voteAverage: Int?,
+    val voteAverage: Double?,
     @SerializedName("vote_count")
     val voteCount: Int?,
     @SerializedName("width")

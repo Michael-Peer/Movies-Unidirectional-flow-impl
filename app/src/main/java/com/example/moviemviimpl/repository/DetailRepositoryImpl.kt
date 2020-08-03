@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import javax.inject.Inject
 
+
 class DetailRepositoryImpl
 @Inject
 constructor(
@@ -23,44 +24,41 @@ constructor(
 
 ) : DetailRepository {
     private val TAG = "DetailRepositoryImpl"
-
     override fun getMovieImage(
         stateEvent: StateEvent,
         movieId: Int
-    ): Flow<DataState<DetailScreenViewState>> {
-        Log.d(TAG, "getMovieImage: state")
-        return flow {
-            val apiResult = safeApiCall(Dispatchers.IO) {
-                moviesApi.getMovieImages(
-                    apiKey = Constants.API_KEY,
-                    movieId = movieId
-                )
-            }
-            emit(object : ApiResponseHandler<DetailScreenViewState, MovieImages>(
-                response = apiResult,
-                stateEvent = stateEvent
-            ) {
-                override suspend fun handleSuccess(resultObj: MovieImages): DataState<DetailScreenViewState> {
+    ): Flow<DataState<DetailScreenViewState>> = flow {
+        Log.d(TAG, "getMovieImage: start")
+        val apiResult = safeApiCall(Dispatchers.IO) {
+            moviesApi.getMovieImages(
+                apiKey = Constants.API_KEY,
+                movieId = movieId
+            )
+        }
+        Log.d(TAG, "getMovieImage: after api result")
+        emit(object : ApiResponseHandler<DetailScreenViewState, MovieImages>(
+            response = apiResult,
+            stateEvent = stateEvent
+        ) {
+            override suspend fun handleSuccess(resultObj: MovieImages): DataState<DetailScreenViewState> {
 
-                    Log.d(TAG, "handleSuccess: $resultObj")
-                    Log.d(TAG, "handleSuccess: ${resultObj.id}")
-                    Log.d(TAG, "handleSuccess: ${resultObj.backdrops}")
-                    Log.d(TAG, "handleSuccess: ${resultObj.posters}")
+                Log.d(TAG, "handleSuccess: $resultObj")
+                Log.d(TAG, "handleSuccess: ${resultObj.id}")
+                Log.d(TAG, "handleSuccess: ${resultObj.backdrops}")
+                Log.d(TAG, "handleSuccess: ${resultObj.posters}")
 
-                    val viewState = DetailScreenViewState(
+                return DataState.data(
+                    response = null,
+                    data = DetailScreenViewState(
                         movieDetailFields = MoviesDetailsFields(
                             movieImages = resultObj
                         )
-                    )
-                    return DataState.data(
-                        response = null,
-                        data = viewState,
-                        stateEvent = stateEvent
-                    )
-                }
+                    ),
+                    stateEvent = stateEvent
+                )
+            }
 
-            }.getResult())
-        }
+        }.getResult())
     }
 
 

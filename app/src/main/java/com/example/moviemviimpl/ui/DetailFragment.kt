@@ -13,9 +13,11 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.NavigationUI
+import androidx.viewpager2.widget.ViewPager2
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import com.example.moviemviimpl.R
+import com.example.moviemviimpl.adapters.ImageSliderAdapter
 import com.example.moviemviimpl.state.DetailScreenStateEvent
 import com.example.moviemviimpl.utils.StateMessageCallback
 import com.example.moviemviimpl.utils.UICommunicationListener
@@ -33,7 +35,12 @@ constructor(
 ) : Fragment() {
     private val TAG = "DetailFragment"
 
-    lateinit var uiCommunicationListener: UICommunicationListener
+    private lateinit var uiCommunicationListener: UICommunicationListener
+
+    private lateinit var moviesImageAdapter: ImageSliderAdapter
+
+
+    private lateinit var viewPager: ViewPager2
 
 
     private val args: DetailFragmentArgs by navArgs()
@@ -60,6 +67,12 @@ constructor(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        viewPager = view.findViewById(R.id.pager)
+
+
+        moviesImageAdapter = ImageSliderAdapter()
+        viewPager.adapter = moviesImageAdapter
+
         detailViewModel.setMovieData(args.Movie)
         Log.d(TAG, "SetFlow: ${args.Movie.title}")
 
@@ -73,23 +86,23 @@ constructor(
 
         textView11.text = args.Movie.title
         collapsingToolbarLayout.title = args.Movie.title
-        loadDetailImage()
+//        loadDetailImagee()
 
 
 
         subscribeMoviesObserver()
 
-        detailViewModel.setStateEvent(DetailScreenStateEvent.getMovieImages)
+        detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieImages)
     }
-
-    private fun loadDetailImage() {
-        val currentUrl = "https://image.tmdb.org/t/p/w400" + args.Movie.posterPath
-        Glide.with(this)
-            .load(currentUrl)
-            .apply(RequestOptions().override(400, 600))
-            .placeholder(R.drawable.ic_launcher_background)
-            .into(detailImage)
-    }
+//
+//    private fun loadDetailImage() {
+//        val currentUrl = "https://image.tmdb.org/t/p/w400" + args.Movie.posterPath
+//        Glide.with(this)
+//            .load(currentUrl)
+//            .apply(RequestOptions().override(400, 600))
+//            .placeholder(R.drawable.ic_launcher_background)
+//            .into(detailImage)
+//    }
 
     private fun subscribeMoviesObserver() {
 
@@ -99,6 +112,11 @@ constructor(
                 //set fields
                 Log.d(TAG, "subscribeMoviesObserver: ${viewState.movieDetailFields.movie}")
                 Log.d(TAG, "subscribeMoviesObserver: ${viewState.movieDetailFields.movieImages}")
+                viewState.movieDetailFields.movieImages?.backdrops?.let {
+                    moviesImageAdapter.setItem(
+                        it
+                    )
+                }
             }
 
         })
@@ -156,4 +174,7 @@ constructor(
         }
     }
 
+
 }
+
+

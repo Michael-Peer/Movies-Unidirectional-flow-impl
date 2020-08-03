@@ -25,7 +25,7 @@ interface MoviesApi {
 
     @GET("3/movie/{movie_id}/images")
     suspend fun getMovieImages(
-        @Query("api_key") apiKey: String,
-        @Path("movie_id") movieId: Int
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String
     ): MovieImages
 }

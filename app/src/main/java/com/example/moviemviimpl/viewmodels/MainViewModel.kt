@@ -40,7 +40,6 @@ constructor(
     }
 
 
-
     //IN BASE
 //    private val _viewState: MutableLiveData<MainScreenViewState> = MutableLiveData()
 
@@ -51,15 +50,10 @@ constructor(
 //        get() = _viewState
 
 
-
-
 //    val dataState: LiveData<DataState<MainScreenViewState>> = Transformations
 //        .switchMap(_stateEvent) { stateEvent ->
 //            handleStateEvent(stateEvent)
 //        }
-
-
-
 
 
 //    val numActiveJobs: LiveData<Int> = dataChannelManager.numActiveJobs
@@ -224,32 +218,35 @@ constructor(
     }
 
     override fun setStateEvent(stateEvent: StateEvent) {
-        val job: Flow<DataState<MainScreenViewState>> = when (stateEvent) {
+        if (!isJobAlreadyActive(stateEvent)) {
+            val job: Flow<DataState<MainScreenViewState>> = when (stateEvent) {
 
-            is MainScreenStateEvent.GetAllMovies, MainScreenStateEvent.OrderByMovies -> {
-                mainRepository.getMovies(stateEvent = stateEvent, order = getOrder())
-            }
+                is MainScreenStateEvent.GetAllMovies, MainScreenStateEvent.OrderByMovies -> {
+                    mainRepository.getMovies(stateEvent = stateEvent, order = getOrder())
+                }
 
 //            is  -> {
 //                mainRepository.getMovies(stateEvent, getOrder())
 //            }
-            else -> {
-                flow {
-                    emit(
-                        DataState.error<MainScreenViewState>(
-                            response = Response(
-                                message = INVALID_STATE_EVENT,
-                                uiComponentType = UIComponentType.None,
-                                messageType = MessageType.Error
-                            ),
-                            stateEvent = stateEvent
+                else -> {
+                    flow {
+                        emit(
+                            DataState.error<MainScreenViewState>(
+                                response = Response(
+                                    message = INVALID_STATE_EVENT,
+                                    uiComponentType = UIComponentType.None,
+                                    messageType = MessageType.Error
+                                ),
+                                stateEvent = stateEvent
+                            )
                         )
-                    )
+                    }
                 }
-            }
 
+            }
+            launchJob(stateEvent, job)
         }
-        launchJob(stateEvent, job)
+
     }
 
 //        fun setStateEvent(stateEvent: StateEvent) {

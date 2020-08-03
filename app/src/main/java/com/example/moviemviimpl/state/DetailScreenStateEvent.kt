@@ -4,7 +4,7 @@ import com.example.moviemviimpl.utils.StateEvent
 
 sealed class DetailScreenStateEvent : StateEvent {
 
-    object getMovieImages : DetailScreenStateEvent() {
+    object GetMovieImages : DetailScreenStateEvent() {
 
         override fun errorInfo(): String {
             return "Error While Trying to get movies"

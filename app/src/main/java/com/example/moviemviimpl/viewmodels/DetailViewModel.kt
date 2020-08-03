@@ -4,7 +4,6 @@ import android.util.Log
 import com.example.moviemviimpl.model.Movie
 import com.example.moviemviimpl.model.MovieImages
 import com.example.moviemviimpl.repository.DetailRepository
-import com.example.moviemviimpl.repository.DetailRepositoryImpl
 import com.example.moviemviimpl.state.DetailScreenStateEvent
 import com.example.moviemviimpl.state.DetailScreenViewState
 import com.example.moviemviimpl.utils.*
@@ -22,6 +21,10 @@ constructor(
     private val moviesDetailRepository: DetailRepository
 ) : BaseViewModel<DetailScreenViewState>() {
     private val TAG = "DetailViewModel"
+
+    init {
+        Log.d(TAG, "$moviesDetailRepository ")
+    }
 
 
     fun setMovieData(movie: Movie) {
@@ -57,35 +60,34 @@ constructor(
     }
 
     override fun setStateEvent(stateEvent: StateEvent) {
-        val job: Flow<DataState<DetailScreenViewState>> = when (stateEvent) {
-            is DetailScreenStateEvent.getMovieImages -> {
-                flow {
-                    val movie: Movie? = getMovie()
-                    movie?.let {
-                        moviesDetailRepository.getMovieImage(
-                            stateEvent = stateEvent,
-                            movieId = it.id!!
-                        )
-                    }
+        if (!isJobAlreadyActive(stateEvent)) {
+            val job: Flow<DataState<DetailScreenViewState>> = when (stateEvent) {
 
-                }
-            }
-            else -> {
-                flow {
-                    emit(
-                        DataState.error<DetailScreenViewState>(
-                            response = Response(
-                                message = ErrorHandling.INVALID_STATE_EVENT,
-                                uiComponentType = UIComponentType.None,
-                                messageType = MessageType.Error
-                            ),
-                            stateEvent = stateEvent
-                        )
+                is DetailScreenStateEvent.GetMovieImages -> {
+                    moviesDetailRepository.getMovieImage(
+                        stateEvent = stateEvent,
+                        movieId = getMovie().id!!
                     )
                 }
+
+                else -> {
+                    flow {
+                        emit(
+                            DataState.error<DetailScreenViewState>(
+                                response = Response(
+                                    message = ErrorHandling.INVALID_STATE_EVENT,
+                                    uiComponentType = UIComponentType.None,
+                                    messageType = MessageType.Error
+                                ),
+                                stateEvent = stateEvent
+                            )
+                        )
+                    }
+                }
+
             }
+            launchJob(stateEvent, job)
         }
-        launchJob(stateEvent, job)
     }
 
 
