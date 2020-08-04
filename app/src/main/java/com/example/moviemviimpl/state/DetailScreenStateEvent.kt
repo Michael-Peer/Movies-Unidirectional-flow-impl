@@ -7,11 +7,22 @@ sealed class DetailScreenStateEvent : StateEvent {
     object GetMovieImages : DetailScreenStateEvent() {
 
         override fun errorInfo(): String {
-            return "Error While Trying to get movies"
+            return "Error While Trying to get movies images"
         }
 
         override fun toString(): String {
-            return "getMoviePhotos"
+            return "GetMovieImages"
         }
     }
+
+    object GetMovieTrailer : DetailScreenStateEvent() {
+
+        override fun errorInfo(): String {
+            return "Error While Trying to get movie trailer"
+        }
+
+        override fun toString(): String {
+            return "GetMovieTrailer"
+        }
     }
+}

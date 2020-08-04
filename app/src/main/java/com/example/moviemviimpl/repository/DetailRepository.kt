@@ -8,5 +8,8 @@ import kotlinx.coroutines.flow.Flow
 
 interface DetailRepository {
     fun getMovieImage(stateEvent: StateEvent, movieId: Int): Flow<DataState<DetailScreenViewState>>
+
+    fun getMovieTrailer(stateEvent: StateEvent, movieId: Int): Flow<DataState<DetailScreenViewState>>
+
 }
 

@@ -3,6 +3,7 @@ package com.example.moviemviimpl.viewmodels
 import android.util.Log
 import com.example.moviemviimpl.model.Movie
 import com.example.moviemviimpl.model.MovieImages
+import com.example.moviemviimpl.model.Trailers
 import com.example.moviemviimpl.repository.DetailRepository
 import com.example.moviemviimpl.state.DetailScreenStateEvent
 import com.example.moviemviimpl.state.DetailScreenViewState
@@ -44,27 +45,46 @@ constructor(
     }
 
 
+    override fun handleNewData(data: DetailScreenViewState) {
+        Log.d(TAG, "handleNewData: $data")
+        data.movieDetailFields.let { movieDetailFields ->
+
+            movieDetailFields.movieImages?.let { movieImages ->
+                setImagesData(movieImages)
+            }
+
+            movieDetailFields.movieTrailers?.let { movieTrailers ->
+                setMovieTrailers(movieTrailers)
+            }
+        }
+    }
+
     private fun setImagesData(movieImages: MovieImages) {
         val updatedViewState = getCurrentViewStateOrNew()
         updatedViewState.movieDetailFields.movieImages = movieImages
         setViewState(updatedViewState)
     }
 
-    override fun handleNewData(data: DetailScreenViewState) {
-        Log.d(TAG, "handleNewData: $data")
-        data.movieDetailFields.let { movieDetailFields ->
-            movieDetailFields.movieImages?.let { movieImages ->
-                setImagesData(movieImages)
-            }
-        }
+    private fun setMovieTrailers(movieTrailers: Trailers) {
+        val updatedViewState = getCurrentViewStateOrNew()
+        updatedViewState.movieDetailFields.movieTrailers = movieTrailers
+        setViewState(updatedViewState)
     }
 
     override fun setStateEvent(stateEvent: StateEvent) {
         if (!isJobAlreadyActive(stateEvent)) {
+
             val job: Flow<DataState<DetailScreenViewState>> = when (stateEvent) {
 
                 is DetailScreenStateEvent.GetMovieImages -> {
                     moviesDetailRepository.getMovieImage(
+                        stateEvent = stateEvent,
+                        movieId = getMovie().id!!
+                    )
+                }
+
+                is DetailScreenStateEvent.GetMovieTrailer -> {
+                    moviesDetailRepository.getMovieTrailer(
                         stateEvent = stateEvent,
                         movieId = getMovie().id!!
                     )
@@ -93,6 +113,20 @@ constructor(
 
     override fun initNewViewState(): DetailScreenViewState {
         return DetailScreenViewState()
+    }
+
+    fun extractTrailer(): String? {
+        val trailers = getCurrentViewStateOrNew().movieDetailFields.movieTrailers?.trailers
+        trailers?.let { trailersList ->
+            for (trailer in trailersList) {
+                if (trailer.site == "YouTube") {
+                    Log.d(TAG, "extractTrailer papapa: YouTube")
+                    //Returning the first youtube trailer
+                    return trailer.key
+                }
+            }
+        }
+        return null
     }
 
 }

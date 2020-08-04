@@ -391,35 +391,35 @@ constructor(
     }
 
 
-    /**
-     *
-     * Here I set the adapter to null because the adapter, hence the recycler view and the constraint layout was leaked whan I navigate to DetailFragment
-     *
-     * We set here the support action bar to null to prevent leaking:
-     * One fragment called  (activity as AppCompatActivity).setSupportActionBar with a view contained in the fragments layout.
-     * When switching to another fragment the resources couldn't get gc'ed because the activity was still holding a reference to the no longer visible toolbar.
-     *
-     * Here we set also addOnAttachStateChangeListener because the animation
-     * @stackoverflow question ref: https://stackoverflow.com/questions/35520946/leak-canary-recyclerview-leaking-madapter
-     *
-     *
-     *
-     */
-    override fun onDestroyView() {
-        movies_recycler_view.adapter = null
-        (activity as AppCompatActivity).setSupportActionBar(null) //remove
-        movies_recycler_view.addOnAttachStateChangeListener(object :
-            View.OnAttachStateChangeListener {
-            override fun onViewDetachedFromWindow(v: View?) {
-                movies_recycler_view.adapter = null;
-            }
-
-            override fun onViewAttachedToWindow(v: View?) {
-                TODO("Not yet implemented")
-            }
-
-        })
-        super.onDestroyView()
-    }
+//    /**
+//     *
+//     * Here I set the adapter to null because the adapter, hence the recycler view and the constraint layout was leaked whan I navigate to DetailFragment
+//     *
+//     * We set here the support action bar to null to prevent leaking:
+//     * One fragment called  (activity as AppCompatActivity).setSupportActionBar with a view contained in the fragments layout.
+//     * When switching to another fragment the resources couldn't get gc'ed because the activity was still holding a reference to the no longer visible toolbar.
+//     *
+//     * Here we set also addOnAttachStateChangeListener because the animation
+//     * @stackoverflow question ref: https://stackoverflow.com/questions/35520946/leak-canary-recyclerview-leaking-madapter
+//     *
+//     *
+//     *
+//     */
+//    override fun onDestroyView() {
+//        movies_recycler_view.adapter = null
+//        (activity as AppCompatActivity).setSupportActionBar(null) //remove
+//        movies_recycler_view.addOnAttachStateChangeListener(object :
+//            View.OnAttachStateChangeListener {
+//            override fun onViewDetachedFromWindow(v: View?) {
+//                movies_recycler_view.adapter = null;
+//            }
+//
+//            override fun onViewAttachedToWindow(v: View?) {
+//                TODO("Not yet implemented")
+//            }
+//
+//        })
+//        super.onDestroyView()
+//    }
 
 }

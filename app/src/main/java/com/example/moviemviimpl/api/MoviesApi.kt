@@ -1,10 +1,9 @@
 package com.example.moviemviimpl.api
 
-import androidx.lifecycle.LiveData
 import com.example.moviemviimpl.model.MovieImages
 import com.example.moviemviimpl.model.Movies
+import com.example.moviemviimpl.model.Trailers
 import com.example.moviemviimpl.utils.Constants
-import com.example.moviemviimpl.utils.GenericApiResponse
 import retrofit2.http.GET
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -28,4 +27,11 @@ interface MoviesApi {
         @Path("movie_id") movieId: Int,
         @Query("api_key") apiKey: String
     ): MovieImages
+
+    @GET("3/movie/{movie_id}/videos")
+    suspend fun getMovieTrailer(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String
+    ): Trailers
 }
+
