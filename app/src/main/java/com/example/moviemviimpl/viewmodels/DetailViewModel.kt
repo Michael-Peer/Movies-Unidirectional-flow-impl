@@ -1,7 +1,8 @@
 package com.example.moviemviimpl.viewmodels
 
 import android.util.Log
-import com.example.moviemviimpl.model.Movie
+import com.example.moviemviimpl.model.Genre
+import com.example.moviemviimpl.model.MovieDetail
 import com.example.moviemviimpl.model.MovieImages
 import com.example.moviemviimpl.model.Trailers
 import com.example.moviemviimpl.repository.DetailRepository
@@ -28,18 +29,18 @@ constructor(
     }
 
 
-    fun setMovieData(movie: Movie) {
-        Log.d(TAG, "SetFlow: inside  setMovieData $movie")
+    fun setMovieIdData(movieID: Int) {
+        Log.d(TAG, "SetFlow: inside  setMovieData $movieID")
         val updatedViewState = getCurrentViewStateOrNew()
-        updatedViewState.movieDetailFields.movie = movie
+        updatedViewState.movieDetailFields.movieId = movieID
         Log.d(TAG, "SetFlow: inside  updatedViewState ${updatedViewState.movieDetailFields}")
         setViewState(updatedViewState)
     }
 
-    private fun getMovie(): Movie {
+    private fun getMovieID(): Int {
         getCurrentViewStateOrNew().let {
-            return it.movieDetailFields.movie?.let { movie ->
-                return movie
+            return it.movieDetailFields.movieId?.let { movieID ->
+                return movieID
             } ?: throw IllegalArgumentException("Unable get movie")
         }
     }
@@ -56,7 +57,17 @@ constructor(
             movieDetailFields.movieTrailers?.let { movieTrailers ->
                 setMovieTrailers(movieTrailers)
             }
+
+            movieDetailFields.movieDetails?.let { movieDetails ->
+                setMovieDetails(movieDetails)
+            }
         }
+    }
+
+    private fun setMovieDetails(movieDetails: MovieDetail) {
+        val updatedViewState = getCurrentViewStateOrNew()
+        updatedViewState.movieDetailFields.movieDetails = movieDetails
+        setViewState(updatedViewState)
     }
 
     private fun setImagesData(movieImages: MovieImages) {
@@ -79,14 +90,22 @@ constructor(
                 is DetailScreenStateEvent.GetMovieImages -> {
                     moviesDetailRepository.getMovieImage(
                         stateEvent = stateEvent,
-                        movieId = getMovie().id!!
+                        movieId = getMovieID()
                     )
                 }
 
                 is DetailScreenStateEvent.GetMovieTrailer -> {
                     moviesDetailRepository.getMovieTrailer(
                         stateEvent = stateEvent,
-                        movieId = getMovie().id!!
+                        movieId = getMovieID()
+                    )
+                }
+
+                is DetailScreenStateEvent.GetMovieDetail -> {
+                    moviesDetailRepository.getMovieDetail(
+                        stateEvent = stateEvent,
+//                        movieId = getMovie().id!!
+                        movieId = getMovieID()
                     )
                 }
 
@@ -127,6 +146,39 @@ constructor(
             }
         }
         return null
+    }
+
+    fun getGeners(genres: List<Genre>?): String {
+        var stringGeners = "There is no available genres for this movie"
+
+        genres?.let { genresList ->
+            stringGeners = ""
+
+//            for (genre in genresList) {
+//                stringGeners += ", ${genre.name}"
+//            }
+
+            genresList.forEachIndexed { index, genre ->
+//                if (index == 0) {
+//                    stringGeners += " ${genre.name}"
+//                } else {
+//                    stringGeners += ", ${genre.name}"
+//
+//                }
+
+                stringGeners += if (index == 0) {
+                    "${genre.name}"
+                } else {
+                    ", ${genre.name}"
+
+                }
+            }
+        }
+
+//        return stringGeners ?: "There is no available genres to this movie"
+        return stringGeners
+
+
     }
 
 }

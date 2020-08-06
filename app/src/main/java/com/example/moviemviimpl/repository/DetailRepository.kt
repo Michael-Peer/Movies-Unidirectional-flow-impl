@@ -11,5 +11,8 @@ interface DetailRepository {
 
     fun getMovieTrailer(stateEvent: StateEvent, movieId: Int): Flow<DataState<DetailScreenViewState>>
 
+    fun getMovieDetail(stateEvent: StateEvent, movieId: Int): Flow<DataState<DetailScreenViewState>>
+
+
 }
 

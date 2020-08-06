@@ -295,7 +295,7 @@ constructor(
     override fun onMovieClick(position: Int) {
         Log.d(TAG, "onMovieClick: ${position}")
         val movie = moviesRecyclerViewAdapter.getCurrentItem(position)
-        movie?.let {
+        movie?.id?.let {
             val action = MainFragmentDirections.actionMainFragmentToDetailFragment(it)
             findNavController().navigate(action)
         }

@@ -1,5 +1,6 @@
 package com.example.moviemviimpl.api
 
+import com.example.moviemviimpl.model.MovieDetail
 import com.example.moviemviimpl.model.MovieImages
 import com.example.moviemviimpl.model.Movies
 import com.example.moviemviimpl.model.Trailers
@@ -33,5 +34,11 @@ interface MoviesApi {
         @Path("movie_id") movieId: Int,
         @Query("api_key") apiKey: String
     ): Trailers
+
+    @GET("3/movie/{movie_id}")
+    suspend fun getMovieDetail(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String
+    ): MovieDetail
 }
 

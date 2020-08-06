@@ -3,6 +3,7 @@ package com.example.moviemviimpl.repository
 import android.util.Log
 import com.example.moviemviimpl.api.MoviesApi
 import com.example.moviemviimpl.cache.MovieDao
+import com.example.moviemviimpl.model.MovieDetail
 import com.example.moviemviimpl.model.MovieImages
 import com.example.moviemviimpl.model.Trailers
 import com.example.moviemviimpl.state.DetailScreenViewState
@@ -96,5 +97,38 @@ constructor(
         }.getResult())
     }
 
+    override fun getMovieDetail(
+        stateEvent: StateEvent,
+        movieId: Int
+    ): Flow<DataState<DetailScreenViewState>> = flow {
+        Log.d(TAG, "getMovieTrailer: start")
+
+        val apiResult = safeApiCall(Dispatchers.IO) {
+            moviesApi.getMovieDetail(
+                apiKey = Constants.API_KEY,
+                movieId = movieId
+            )
+        }
+        Log.d(TAG, "getMovieTrailer: after api result")
+        emit(object : ApiResponseHandler<DetailScreenViewState, MovieDetail>(
+            response = apiResult,
+            stateEvent = stateEvent
+        ) {
+            override suspend fun handleSuccess(resultObj: MovieDetail): DataState<DetailScreenViewState> {
+
+
+                return DataState.data(
+                    response = null,
+                    data = DetailScreenViewState(
+                        movieDetailFields = MoviesDetailsFields(
+                            movieDetails = resultObj
+                        )
+                    ),
+                    stateEvent = stateEvent
+                )
+            }
+
+        }.getResult())
+    }
 
 }

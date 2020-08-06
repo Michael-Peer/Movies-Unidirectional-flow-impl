@@ -13,10 +13,17 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.navArgs
 import androidx.navigation.ui.NavigationUI
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.moviemviimpl.R
 import com.example.moviemviimpl.adapters.ImageSliderAdapter
+import com.example.moviemviimpl.adapters.MovieDetailVideosRecyclerAdapter
 import com.example.moviemviimpl.adapters.OnPlayButtonClickListener
+import com.example.moviemviimpl.adapters.OnVideoClickListener
+import com.example.moviemviimpl.model.MovieDetail
 import com.example.moviemviimpl.state.DetailScreenStateEvent
 import com.example.moviemviimpl.utils.*
 import com.example.moviemviimpl.viewmodels.DetailViewModel
@@ -31,15 +38,19 @@ import kotlinx.coroutines.FlowPreview
 class DetailFragment
 constructor(
     private val viewModelFactory: ViewModelProvider.Factory
-) : Fragment(), OnPlayButtonClickListener {
+) : Fragment(), OnPlayButtonClickListener, OnVideoClickListener {
     private val TAG = "DetailFragment"
 
     private lateinit var uiCommunicationListener: UICommunicationListener
 
+
     private lateinit var moviesImageAdapter: ImageSliderAdapter
-
-
     private lateinit var viewPager: ViewPager2
+
+    private lateinit var movieVideoRecyclerAdapter: MovieDetailVideosRecyclerAdapter
+    private lateinit var movieVideoRecyclerView: RecyclerView
+    private lateinit var movieVideoRecyclerViewLayoutManager: LinearLayoutManager
+
 
     private var youTubeTrailerId: String? = null
 
@@ -62,7 +73,11 @@ constructor(
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+
+
         setViewPager(view)
+
+        setRecyclerView(view)
 
         setMovieData()
 
@@ -72,10 +87,22 @@ constructor(
 
         setStateEvents()
 
+
     }
 
+
     private fun setMovieData() {
-        detailViewModel.setMovieData(args.Movie)
+        detailViewModel.setMovieIdData(args.movieID)
+    }
+
+    private fun setRecyclerView(view: View) {
+        movieVideoRecyclerView = view.findViewById(R.id.movie_detail_video_recyclerview)
+        movieVideoRecyclerViewLayoutManager =
+            LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
+        movieVideoRecyclerView.layoutManager = movieVideoRecyclerViewLayoutManager
+
+        movieVideoRecyclerAdapter = MovieDetailVideosRecyclerAdapter(this)
+        movieVideoRecyclerView.adapter = movieVideoRecyclerAdapter
     }
 
     private fun setViewPager(view: View) {
@@ -85,6 +112,7 @@ constructor(
     }
 
     private fun setStateEvents() {
+        detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieDetail)
         detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieImages)
         detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieTrailer)
     }
@@ -96,16 +124,10 @@ constructor(
             view.findViewById<CollapsingToolbarLayout>(R.id.coolaps_tool_bar)
         NavigationUI.setupWithNavController(toolbar, navHostFragment)
 
-        textView11.text = args.Movie.title
-        collapsingToolbarLayout.title = args.Movie.title
+//        textView11.text = args.Movie.title
+//        collapsingToolbarLayout.title = args.Movie.title
     }
 
-    override fun onPlayButtonClick(position: Int) {
-        Log.d(TAG, "BUTTON:  CLICKED")
-        youTubeTrailerId?.let {
-            launchMovieTrailer()
-        }
-    }
 
     private fun launchMovieTrailer() {
         val intent = YouTubeStandalonePlayer.createVideoIntent(
@@ -120,18 +142,36 @@ constructor(
         detailViewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
             if (viewState != null) {
                 //set fields
-                Log.d(TAG, "subscribeMoviesObserver: ${viewState.movieDetailFields.movie}")
+                Log.d(TAG, "subscribeMoviesObserver: ${viewState.movieDetailFields.movieDetails}")
                 Log.d(TAG, "subscribeMoviesObserver: ${viewState.movieDetailFields.movieImages}")
+
+                /**
+                 *
+                 * Setup Slider images
+                 *
+                 * **/
+
                 viewState.movieDetailFields.movieImages?.backdrops?.let {
                     moviesImageAdapter.submitList(
                         it
                     )
+
 //                    moviesImageAdapter.setItem(
 //                        it
 //                    )
+
                 }
 
+                /**
+                 *
+                 * Setup Trailer
+                 *
+                 * **/
+
                 viewState.movieDetailFields.movieTrailers?.let {
+                    movieVideoRecyclerAdapter.submitList(it.trailers)
+
+
                     Log.d(TAG, "movieDetailFields: movieTrailers papapa ${it.trailers?.size} ")
                     youTubeTrailerId = detailViewModel.extractTrailer()
                     Log.d(TAG, "subscribeMoviesObserver: youTubeTrailerId $youTubeTrailerId")
@@ -152,9 +192,23 @@ constructor(
                     }
 
                 }
+
+                /**
+                 *
+                 * Setup initial fields
+                 *
+                 **/
+
+                viewState.movieDetailFields.movieDetails?.let { movieDetails ->
+                    Log.d(TAG, "movieDetailFieldsmovie:$movieDetails ")
+                    setupFields(movieDetails)
+
+
+                }
             }
 
         })
+
 
         /**
          *
@@ -195,17 +249,58 @@ constructor(
 
     }
 
+    private fun setupFields(movie: MovieDetail) {
+        val currentUrl = "https://image.tmdb.org/t/p/w400${movie.posterPath}"
+
+        Glide.with(this)
+            .load(currentUrl)
+            .apply(RequestOptions.overrideOf(300, 500))
+            .placeholder(R.drawable.ic_launcher_background)
+            .error(R.drawable.ic_launcher_foreground)
+            .into(movie_detail_title_poster)
+
+
+        movie_detail_title_text.text = movie.title
+        movie_detail_release_date_text.text = movie.releaseDate
+        movie_detail_overview_text.text = movie.overview
+
+        val geners: String = detailViewModel.getGeners(movie.genres)
+        movie_detail_genere_text.text = geners
+
+        movie_detail_rating_text.text = movie.voteAverage.toString()
+    }
+
     override fun onAttach(context: Context) {
         super.onAttach(context)
-//        try {
-//            dataStateListener = context as DataStateListener
-//        } catch (e: ClassCastException) {
-//            Log.d(TAG, "onAttach: $e")
-//        }
         try {
             uiCommunicationListener = context as UICommunicationListener
         } catch (e: ClassCastException) {
             Log.e(TAG, "$context must implement UICommunicationListener")
+        }
+    }
+
+    /**
+     *
+     * Videos list
+     * 
+     * **/
+    override fun onVideoClick(position: Int) {
+        val trailerKey = movieVideoRecyclerAdapter.getTrailerKey(position)
+        trailerKey?.let {
+            youTubeTrailerId = trailerKey
+            launchMovieTrailer()
+        }
+    }
+
+    /**
+     *
+     * Play button in the "main" trailer
+     *
+     * **/
+    override fun onPlayButtonClick(position: Int) {
+        Log.d(TAG, "BUTTON:  CLICKED")
+        youTubeTrailerId?.let {
+            launchMovieTrailer()
         }
     }
 
