@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.bumptech.glide.request.RequestOptions
 import com.example.moviemviimpl.R
 import com.example.moviemviimpl.model.Trailer
 import kotlinx.android.synthetic.main.movie_video_item.view.*
@@ -67,7 +68,7 @@ class MovieDetailVideosRecyclerAdapter(private var onVideoClickListener: OnVideo
 //            val currentUrl = "https://img.youtube.com/vi/4CJBuUwd0Os/1.jpg"
             Glide.with(itemView.context)
                 .load(currentUrl)
-//                .apply(RequestOptions.overrideOf(400, 600))
+                .apply(RequestOptions.overrideOf(800, 400))
                 .placeholder(R.drawable.ic_launcher_background)
                 .error(R.drawable.ic_launcher_background)
                 .into(videoImage)

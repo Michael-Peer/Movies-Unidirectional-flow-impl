@@ -1,10 +1,7 @@
 package com.example.moviemviimpl.viewmodels
 
 import android.util.Log
-import com.example.moviemviimpl.model.Genre
-import com.example.moviemviimpl.model.MovieDetail
-import com.example.moviemviimpl.model.MovieImages
-import com.example.moviemviimpl.model.Trailers
+import com.example.moviemviimpl.model.*
 import com.example.moviemviimpl.repository.DetailRepository
 import com.example.moviemviimpl.state.DetailScreenStateEvent
 import com.example.moviemviimpl.state.DetailScreenViewState
@@ -46,42 +43,6 @@ constructor(
     }
 
 
-    override fun handleNewData(data: DetailScreenViewState) {
-        Log.d(TAG, "handleNewData: $data")
-        data.movieDetailFields.let { movieDetailFields ->
-
-            movieDetailFields.movieImages?.let { movieImages ->
-                setImagesData(movieImages)
-            }
-
-            movieDetailFields.movieTrailers?.let { movieTrailers ->
-                setMovieTrailers(movieTrailers)
-            }
-
-            movieDetailFields.movieDetails?.let { movieDetails ->
-                setMovieDetails(movieDetails)
-            }
-        }
-    }
-
-    private fun setMovieDetails(movieDetails: MovieDetail) {
-        val updatedViewState = getCurrentViewStateOrNew()
-        updatedViewState.movieDetailFields.movieDetails = movieDetails
-        setViewState(updatedViewState)
-    }
-
-    private fun setImagesData(movieImages: MovieImages) {
-        val updatedViewState = getCurrentViewStateOrNew()
-        updatedViewState.movieDetailFields.movieImages = movieImages
-        setViewState(updatedViewState)
-    }
-
-    private fun setMovieTrailers(movieTrailers: Trailers) {
-        val updatedViewState = getCurrentViewStateOrNew()
-        updatedViewState.movieDetailFields.movieTrailers = movieTrailers
-        setViewState(updatedViewState)
-    }
-
     override fun setStateEvent(stateEvent: StateEvent) {
         if (!isJobAlreadyActive(stateEvent)) {
 
@@ -109,6 +70,20 @@ constructor(
                     )
                 }
 
+                is DetailScreenStateEvent.GetMovieCredits -> {
+                    moviesDetailRepository.getMovieCredits(
+                        stateEvent = stateEvent,
+                        movieId = getMovieID()
+                    )
+                }
+
+                is DetailScreenStateEvent.GetSimilarMovies -> {
+                    moviesDetailRepository.getSimilarMovies(
+                        stateEvent = stateEvent,
+                        movieId = getMovieID()
+                    )
+                }
+
                 else -> {
                     flow {
                         emit(
@@ -127,6 +102,62 @@ constructor(
             }
             launchJob(stateEvent, job)
         }
+    }
+
+    override fun handleNewData(data: DetailScreenViewState) {
+        Log.d(TAG, "handleNewData: $data")
+        data.movieDetailFields.let { movieDetailFields ->
+
+            movieDetailFields.movieImages?.let { movieImages ->
+                setImagesData(movieImages)
+            }
+
+            movieDetailFields.movieTrailers?.let { movieTrailers ->
+                setMovieTrailers(movieTrailers)
+            }
+
+            movieDetailFields.movieDetails?.let { movieDetails ->
+                setMovieDetails(movieDetails)
+            }
+
+            movieDetailFields.movieCredits?.let { movieCredits ->
+                setMovieCredits(movieCredits)
+            }
+
+            movieDetailFields.similarMovies?.let { similarMovies ->
+                setSimilarMovies(similarMovies)
+            }
+        }
+    }
+
+    private fun setMovieDetails(movieDetails: MovieDetail) {
+        val updatedViewState = getCurrentViewStateOrNew()
+        updatedViewState.movieDetailFields.movieDetails = movieDetails
+        setViewState(updatedViewState)
+    }
+
+    private fun setImagesData(movieImages: MovieImages) {
+        val updatedViewState = getCurrentViewStateOrNew()
+        updatedViewState.movieDetailFields.movieImages = movieImages
+        setViewState(updatedViewState)
+    }
+
+    private fun setMovieTrailers(movieTrailers: Trailers) {
+        val updatedViewState = getCurrentViewStateOrNew()
+        updatedViewState.movieDetailFields.movieTrailers = movieTrailers
+        setViewState(updatedViewState)
+    }
+
+    private fun setMovieCredits(movieCredits: Credits) {
+        val updatedViewState = getCurrentViewStateOrNew()
+        updatedViewState.movieDetailFields.movieCredits = movieCredits
+        setViewState(updatedViewState)
+    }
+
+    private fun setSimilarMovies(similarMovies: Movies) {
+        val updatedViewState = getCurrentViewStateOrNew()
+        updatedViewState.movieDetailFields.similarMovies = similarMovies
+        setViewState(updatedViewState)
     }
 
 

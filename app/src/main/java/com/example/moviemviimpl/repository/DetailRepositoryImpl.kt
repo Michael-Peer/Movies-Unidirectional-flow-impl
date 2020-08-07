@@ -3,9 +3,7 @@ package com.example.moviemviimpl.repository
 import android.util.Log
 import com.example.moviemviimpl.api.MoviesApi
 import com.example.moviemviimpl.cache.MovieDao
-import com.example.moviemviimpl.model.MovieDetail
-import com.example.moviemviimpl.model.MovieImages
-import com.example.moviemviimpl.model.Trailers
+import com.example.moviemviimpl.model.*
 import com.example.moviemviimpl.state.DetailScreenViewState
 import com.example.moviemviimpl.state.MoviesDetailsFields
 import com.example.moviemviimpl.utils.ApiResponseHandler
@@ -122,6 +120,74 @@ constructor(
                     data = DetailScreenViewState(
                         movieDetailFields = MoviesDetailsFields(
                             movieDetails = resultObj
+                        )
+                    ),
+                    stateEvent = stateEvent
+                )
+            }
+
+        }.getResult())
+    }
+
+    override fun getMovieCredits(
+        stateEvent: StateEvent,
+        movieId: Int
+    ): Flow<DataState<DetailScreenViewState>> = flow {
+        Log.d(TAG, "getMovieTrailer: start")
+
+        val apiResult = safeApiCall(Dispatchers.IO) {
+            moviesApi.getMovieCredits(
+                apiKey = Constants.API_KEY,
+                movieId = movieId
+            )
+        }
+        Log.d(TAG, "getMovieCredits: after api result")
+        emit(object : ApiResponseHandler<DetailScreenViewState, Credits>(
+            response = apiResult,
+            stateEvent = stateEvent
+        ) {
+            override suspend fun handleSuccess(resultObj: Credits): DataState<DetailScreenViewState> {
+
+
+                return DataState.data(
+                    response = null,
+                    data = DetailScreenViewState(
+                        movieDetailFields = MoviesDetailsFields(
+                            movieCredits = resultObj
+                        )
+                    ),
+                    stateEvent = stateEvent
+                )
+            }
+
+        }.getResult())
+    }
+
+    override fun getSimilarMovies(
+        stateEvent: StateEvent,
+        movieId: Int
+    ): Flow<DataState<DetailScreenViewState>> = flow {
+        Log.d(TAG, "getMovieTrailer: start")
+
+        val apiResult = safeApiCall(Dispatchers.IO) {
+            moviesApi.getSimilarMovies(
+                apiKey = Constants.API_KEY,
+                movieId = movieId
+            )
+        }
+        Log.d(TAG, "getMovieCredits: after api result")
+        emit(object : ApiResponseHandler<DetailScreenViewState, Movies>(
+            response = apiResult,
+            stateEvent = stateEvent
+        ) {
+            override suspend fun handleSuccess(resultObj: Movies): DataState<DetailScreenViewState> {
+
+
+                return DataState.data(
+                    response = null,
+                    data = DetailScreenViewState(
+                        movieDetailFields = MoviesDetailsFields(
+                            similarMovies = resultObj
                         )
                     ),
                     stateEvent = stateEvent

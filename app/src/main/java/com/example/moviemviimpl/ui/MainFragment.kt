@@ -24,6 +24,7 @@ import com.example.moviemviimpl.R
 import com.example.moviemviimpl.state.MainScreenStateEvent
 import com.example.moviemviimpl.utils.Constants
 import com.example.moviemviimpl.utils.StateMessageCallback
+import com.example.moviemviimpl.utils.SpacingItemDecoration
 import com.example.moviemviimpl.utils.UICommunicationListener
 import com.example.moviemviimpl.viewmodels.MainViewModel
 import com.example.resclassex.adapters.MoviesRecyclerViewAdapter
@@ -55,6 +56,8 @@ constructor(
 
     lateinit var uiCommunicationListener: UICommunicationListener
 
+    private var gridLayoutColumns = 3
+
 
     private val mainViewModel: MainViewModel by viewModels {
         viewModelFactory
@@ -82,17 +85,28 @@ constructor(
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
 
+        setRecyclerviewColumnsNumber()
+
         setupToolbar(view)
 
         setupChannel()
 
         triggerGetMoviesEvent()
 
-        initRecyclerView()
+        initRecyclerView(gridLayoutColumns)
 
         subscribeMoviesObserver()
 
+    }
 
+    /**
+     *
+     * portrait - 3
+     * landscape - 6
+     *
+     * **/
+    private fun setRecyclerviewColumnsNumber() {
+        gridLayoutColumns = resources.getInteger(R.integer.number_movie_columns)
     }
 
     /**
@@ -112,9 +126,10 @@ constructor(
 
     private fun setupChannel() = mainViewModel.setupChannel()
 
-    private fun initRecyclerView() {
+    private fun initRecyclerView(gridLayoutColumns: Int) {
         activity?.let { activity ->
-            gridLayoutManager = GridLayoutManager(activity, 3)
+            gridLayoutManager = GridLayoutManager(activity, gridLayoutColumns)
+            movies_recycler_view.addItemDecoration(SpacingItemDecoration(8))
             moviesRecyclerViewAdapter = MoviesRecyclerViewAdapter(this)
             movies_recycler_view.layoutManager = gridLayoutManager
             movies_recycler_view.adapter = moviesRecyclerViewAdapter

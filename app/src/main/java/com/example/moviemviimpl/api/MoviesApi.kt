@@ -1,9 +1,6 @@
 package com.example.moviemviimpl.api
 
-import com.example.moviemviimpl.model.MovieDetail
-import com.example.moviemviimpl.model.MovieImages
-import com.example.moviemviimpl.model.Movies
-import com.example.moviemviimpl.model.Trailers
+import com.example.moviemviimpl.model.*
 import com.example.moviemviimpl.utils.Constants
 import retrofit2.http.GET
 import retrofit2.http.Path
@@ -40,5 +37,19 @@ interface MoviesApi {
         @Path("movie_id") movieId: Int,
         @Query("api_key") apiKey: String
     ): MovieDetail
+
+    @GET("3/movie/{movie_id}/credits")
+    suspend fun getMovieCredits(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String
+    ): Credits
+
+    @GET("3/movie/{movie_id}/similar")
+    suspend fun getSimilarMovies(
+        @Path("movie_id") movieId: Int,
+        @Query("api_key") apiKey: String
+    ) : Movies
+
+
 }
 

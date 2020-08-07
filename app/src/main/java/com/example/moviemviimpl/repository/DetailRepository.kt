@@ -13,6 +13,10 @@ interface DetailRepository {
 
     fun getMovieDetail(stateEvent: StateEvent, movieId: Int): Flow<DataState<DetailScreenViewState>>
 
+    fun getMovieCredits(stateEvent: StateEvent, movieId: Int): Flow<DataState<DetailScreenViewState>>
+
+    fun getSimilarMovies(stateEvent: StateEvent, movieId: Int): Flow<DataState<DetailScreenViewState>>
+
 
 }
 

@@ -64,7 +64,7 @@ class MoviesRecyclerViewAdapter(private var onMovieClickListener: OnMovieClickLi
     class MoviesViewHolder(itemView: View, private var onMovieClickListener: OnMovieClickListener) :
         RecyclerView.ViewHolder(itemView), View.OnClickListener {
         private var movieImage = itemView.movie_image
-        private var movieTitleText = itemView.movie_title_text
+//        private var movieTitleText = itemView.movie_title_text
 
         init {
             itemView.setOnClickListener(this)
@@ -73,9 +73,9 @@ class MoviesRecyclerViewAdapter(private var onMovieClickListener: OnMovieClickLi
 
         fun bind(item: Movie?) {
             item?.let { movie ->
-                movieTitleText.text = movie.title
+//                movieTitleText.text = movie.title
 
-                val currentUrl = "https://image.tmdb.org/t/p/w400${movie.posterPath}"
+                val currentUrl = "https://image.tmdb.org/t/p/original${movie.posterPath}"
 
                 Glide.with(itemView.context)
                     .load(currentUrl)
