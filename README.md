@@ -4,9 +4,9 @@ This project is focused of scalable, maintaible and testable app.
 
 Focused on effiecent erorr handling, generis and declaretive&readable code.
 
-#TODO
+# TODO
 
-#Known bugs
+# Known bugs
 
 Main slider returns to first position after configuration change - FIXED
 
