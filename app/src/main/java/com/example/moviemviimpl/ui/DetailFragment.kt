@@ -6,10 +6,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ScrollView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
@@ -29,15 +31,17 @@ import com.example.resclassex.adapters.OnMovieClickListener
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.youtube.player.YouTubeStandalonePlayer
 import kotlinx.android.synthetic.main.fragment_detail.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.launch
 
 @FlowPreview
 @ExperimentalCoroutinesApi
 class DetailFragment
 constructor(
     private val viewModelFactory: ViewModelProvider.Factory
-) : Fragment(), OnPlayButtonClickListener, OnVideoClickListener, OnMovieClickListener {
+) : Fragment(), OnPlayButtonClickListener, OnVideoClickListener, OnMovieClickListener, OnCastClickListener {
     private val TAG = "DetailFragment"
 
     /**
@@ -51,6 +55,7 @@ constructor(
      * **/
     private lateinit var moviesImageAdapter: ImageSliderAdapter
     private lateinit var viewPager: ViewPager2
+    private var viewPagerPosition: Int? = null
 
     /**
      * Video recyclerview
@@ -84,9 +89,27 @@ constructor(
      * movieID
      * **/
     private val args: DetailFragmentArgs by navArgs()
+    private var currentMovieID: Int? = null
 
     private val detailViewModel: DetailViewModel by viewModels {
         viewModelFactory
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("viewpagerdebug", "onCreate: Befote change")
+        savedInstanceState?.let { bundle ->
+            (bundle[Constants.VIEW_PAGER_POSITION] as Int)?.let { position ->
+                Log.d("viewpagerdebug", "onCreate: Agter change")
+                Log.d("viewpagerdebug", "onCreate View Pager Position $position")
+                viewPagerPosition = position
+                Log.d("viewpagerdebug", "onCreate viewPagerPosition $viewPagerPosition")
+            }
+
+            (bundle[Constants.CURRENT_MOVIE_ID] as Int)?.let { movieID ->
+                currentMovieID = movieID
+            }
+        }
+        super.onCreate(savedInstanceState)
     }
 
 
@@ -95,23 +118,34 @@ constructor(
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
+//        Log.d(TAG, "onCreateView: ")
         return inflater.inflate(R.layout.fragment_detail, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        Log.d(TAG, "onViewCreated: ")
 
         setViewPager(view)
+        Log.d(TAG, "onViewCreated: After setViewPager")
 
         setRecyclerView(view)
+        Log.d(TAG, "onViewCreated: After setRecyclerView")
 
-        setMovieData(args.movieID)
+        if (currentMovieID == null) {
+            setMovieData(args.movieID)
+            Log.d(TAG, "onViewCreated: After setMovieData")
+        }
+
 
         setupAppBar(view)
+        Log.d(TAG, "onViewCreated: After setupAppBar")
 
         subscribeMoviesObserver()
+        Log.d(TAG, "onViewCreated: After subscribeMoviesObserver")
 
         setStateEvents()
+        Log.d(TAG, "onViewCreated: After setStateEvents")
 
     }
 
@@ -149,7 +183,7 @@ constructor(
         movieCastRecyclerView.addItemDecoration(SpacingItemDecoration(16))
 
 
-        movieCastAdapter = MovieCastAdapter()
+        movieCastAdapter = MovieCastAdapter(this)
         movieCastRecyclerView.adapter = movieCastAdapter
 
     }
@@ -169,11 +203,32 @@ constructor(
 
     private fun setViewPager(view: View) {
         viewPager = view.findViewById(R.id.pager)
+
+
         moviesImageAdapter = ImageSliderAdapter(this)
         viewPager.adapter = moviesImageAdapter
+
+        /**
+         *
+         * If viewPagerPosition not null, meaning there was a configuration change
+         * And we need to set the position explicitly
+         *
+         * Must launch on coroutine
+         * TODO: Fix scrolled to position on configuration change
+         * **/
+        viewPagerPosition?.let {
+            lifecycleScope.launch(Dispatchers.Main) {
+                viewPager.currentItem = it
+                Log.d(TAG, "\"viewpagerdebug\": ${viewPager.currentItem}")
+            }
+
+        }
+
+
     }
 
     private fun setStateEvents() {
+        //TODO: Multiple time - fix this
         detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieDetail)
         detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieImages)
         detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieTrailer)
@@ -206,8 +261,14 @@ constructor(
         detailViewModel.viewState.observe(viewLifecycleOwner, Observer { viewState ->
             if (viewState != null) {
                 //set fields
-                Log.d(TAG, "subscribeMoviesObserver: ${viewState.movieDetailFields.movieDetails}")
-                Log.d(TAG, "subscribeMoviesObserver: ${viewState.movieDetailFields.movieImages}")
+//                Log.d(
+//                    TAG,
+//                    "subscribeMoviesObserver: ${viewState.movieDetailFields.movieDetails}"
+//                )
+//                Log.d(
+//                    TAG,
+//                    "subscribeMoviesObserver: ${viewState.movieDetailFields.movieImages}"
+//                )
 
                 /**
                  *
@@ -273,8 +334,14 @@ constructor(
                  *
                  * **/
                 viewState.movieDetailFields.similarMovies?.movies?.let {
-                    Log.d(TAG, "similar movies $it")
-                    similarMoviesAdapter.submitList(it)
+//                    Log.d(TAG, "similar movies $it")
+                    if (it.isEmpty()) {
+//                        Log.d(TAG, "similarMovies $it is empty ")
+                        similarMoviesAdapter.setPlaceHolderEmptyData()
+                    } else {
+//                        Log.d(TAG, "similarMovies $it is not empty ")
+                        similarMoviesAdapter.submitList(it)
+                    }
                 }
 
                 /**
@@ -284,7 +351,7 @@ constructor(
                  **/
 
                 viewState.movieDetailFields.movieDetails?.let { movieDetails ->
-                    Log.d(TAG, "movieDetailFieldsmovie:$movieDetails ")
+//                    Log.d(TAG, "movieDetailFieldsmovie:$movieDetails ")
                     setupFields(movieDetails)
 
 
@@ -388,12 +455,19 @@ constructor(
         Log.d(TAG, "onMovieClick: ${position}")
         val movie = similarMoviesAdapter.getCurrentItem(position)
         movie?.id?.let {
-//            val action = MainFragmentDirections.actionMainFragmentToDetailFragment(it)
-//            findNavController().navigate(action)
+            currentMovieID = it
             setMovieData(it)
             setStateEvents()
-//            tool_de.requestFocus()
+            resetUI()
         }
+    }
+
+    private fun resetUI() {
+        viewPagerPosition = 0
+        movieVideoRecyclerView.smoothScrollToPosition(0)
+        movieCastRecyclerView.smoothScrollToPosition(0)
+        similarMoviesRecyclerView.smoothScrollToPosition(0)
+        movie_detail_scrollview.fullScroll(ScrollView.FOCUS_UP)
     }
 
     override fun onAttach(context: Context) {
@@ -403,6 +477,58 @@ constructor(
         } catch (e: ClassCastException) {
             Log.e(TAG, "$context must implement UICommunicationListener")
         }
+    }
+
+    /**
+     * !IMPORTANT!
+     * TODO: Must save ViewState b/c in event of process death the LiveData in ViewModel will be lost
+     */
+    override fun onSaveInstanceState(outState: Bundle) {
+        Log.d("viewpagerdebug", "onSaveInstanceState: ")
+        val sliderPosition = viewPager.currentItem
+        Log.d("viewpagerdebug", "onSaveInstanceState: $sliderPosition")
+
+
+
+        /**
+         *
+         * Position of the "main" slider
+         *
+         * **/
+        outState.putInt(
+            Constants.VIEW_PAGER_POSITION,
+            sliderPosition
+        )
+
+
+        /**
+         * Bug:
+         * When we click on movie from similar movies, we call setMovieData to set the new movie.
+         * The problem is when we rotate the screen, onViewCreated called again
+         * inside onViewCreated we have setMovieData, but with the args.movieID.
+         * So on configuration change will always return args.movieID
+         *
+         * Fix:
+         * Check if there is saved movieID in the bundle?
+         *
+         * **/
+        currentMovieID?.let {
+            outState.putInt(
+                Constants.CURRENT_MOVIE_ID,
+                it
+            )
+        }
+
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onCastClick(position: Int) {
+        val cast = movieCastAdapter.getCurrentItem(position)
+        cast?.name?.let {
+            val action = DetailFragmentDirections.actionDetailFragmentToWebViewFragment(it)
+            findNavController().navigate(action)
+        }
+
     }
 
 

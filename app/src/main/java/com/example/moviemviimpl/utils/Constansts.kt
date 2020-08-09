@@ -1,6 +1,9 @@
 package com.example.moviemviimpl.utils
 
 object Constants {
+    const val CURRENT_MOVIE_ID = "CURRENT_MOVIE_ID"
+    const val VIEW_PAGER_POSITION = "VIEW_PAGER_POSITION"
+
     //TODO:  REMOVE APIS FROM HERE
     const val YOUTUBE_API_KEY = "AIzaSyD1fJgr6g67YsqoNFHRE8k6ay1kNBV6FcU"
     const val API_KEY = "b4a7db64c37af41e1d59907f71f24de4"

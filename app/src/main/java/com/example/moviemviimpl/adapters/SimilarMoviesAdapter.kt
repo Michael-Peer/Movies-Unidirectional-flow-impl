@@ -16,24 +16,44 @@ import kotlinx.android.synthetic.main.movie_item.view.*
 class SimilarMoviesAdapter(
     private val onMovieClickListener: OnMovieClickListener
 ) :
-    ListAdapter<Movie, SimilarMoviesAdapter.SimilarMoviesViewHolder>(
+//    ListAdapter<Movie, SimilarMoviesAdapter.SimilarMoviesViewHolder>(
+    ListAdapter<Movie, RecyclerView.ViewHolder>(
         DiffUtilCallBackSimilar()
     ) {
+
+    private var emptyData = false
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): SimilarMoviesViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.movie_item, parent, false)
-        return SimilarMoviesViewHolder(view, onMovieClickListener)
+    ): RecyclerView.ViewHolder {
+        if (!emptyData) {
+            val view =
+                LayoutInflater.from(parent.context).inflate(R.layout.movie_item, parent, false)
+            return SimilarMoviesViewHolder(view, onMovieClickListener)
+        }
+
+        val view =
+            LayoutInflater.from(parent.context)
+                .inflate(R.layout.layout_empty_data_item, parent, false)
+        return EmptyDataViewHolder(view)
+
+
+    }
+
+    class EmptyDataViewHolder(view: View?): RecyclerView.ViewHolder(view!!) {
+
     }
 
     override fun onBindViewHolder(
-        holder: SimilarMoviesViewHolder,
+        holder: RecyclerView.ViewHolder,
         position: Int
     ) {
-        val item = getItem(position)
-        holder.bind(item)
+        if (!emptyData) {
+            val item = getItem(position)
+            (holder as SimilarMoviesViewHolder).bind(item)
+        }
+
     }
 
     fun getCurrentItem(position: Int): Movie? {
@@ -42,6 +62,12 @@ class SimilarMoviesAdapter(
         } else {
             null
         }
+    }
+
+
+    fun setPlaceHolderEmptyData() {
+        emptyData = true
+        submitList(emptyList())
     }
 
     class SimilarMoviesViewHolder(

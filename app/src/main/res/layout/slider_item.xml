@@ -10,8 +10,10 @@
         android:layout_width="0dp"
         android:layout_height="250dp"
         android:scaleType="centerCrop"
+        android:adjustViewBounds="true"
         android:src="@drawable/ic_launcher_background"
         app:layout_collapseMode="parallax"
+        app:layout_constraintDimensionRatio="w,2:1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
