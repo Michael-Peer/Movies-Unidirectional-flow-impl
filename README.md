@@ -24,7 +24,7 @@ Multiple times fetches&errors on configuration change
 
 If there is no "Similar Movies", write a place holder error
 
-#Screenshots(TEMP DESIGN!)
+# Screenshots(TEMP DESIGN!)
 
 <img src="https://user-images.githubusercontent.com/44434337/90000203-89027200-dc98-11ea-8896-1c6f5a62fce5.jpg" width="200"  height="400" />
 <img src="https://user-images.githubusercontent.com/44434337/90001289-ed720100-dc99-11ea-932a-3685e047a9c1.jpg"  width="400"  height="200"/>
