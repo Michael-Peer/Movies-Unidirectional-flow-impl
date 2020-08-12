@@ -8,6 +8,8 @@ Detaild explaination almost to each step in inside the code
 
 # TODO
 
+In process: Pagingation (Both cache & network)
+
 # Known bugs
 
 Main slider returns to first position after configuration change - FIXED
