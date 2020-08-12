@@ -8,7 +8,7 @@ Detaild explaination to almost each step in inside the code
 
 # TODO
 
-In process: Pagingation (Both cache & network)
+In process: Pagingation (Both cache & network) Paging 3? Custom logic?
 
 # Known bugs
 
