@@ -4,6 +4,8 @@ This project is focused of scalable, maintaible and testable app.
 
 Focused on effiecent erorr handling, generis and declaretive&readable code.
 
+Detaild explaination almost to each step in inside the code
+
 # TODO
 
 # Known bugs
