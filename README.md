@@ -2,7 +2,7 @@
 
 This project is focused of scalable, maintaible and testable app.
 
-Focused on effiecent erorr handling, generis and declaretive&readable code.
+Focused on effiecent erorr handling, generics, declaretive&readable code.
 
 Detaild explaination almost to each step in inside the code
 
@@ -22,7 +22,7 @@ Main slider scaling and quality
 
 AppBar overflow
 
-Leaks
+Leaks - realted to adapter(set to null in onDestoryView event)
 
 Multiple times fetches&errors on configuration change
 
