@@ -26,7 +26,7 @@ If there is no "Similar Movies", write a place holder error
 
 #Screenshots(TEMP DESIGN!)
 
-![Screenshot_2020-08-12-12-33-07-159_com example moviemviimpl](https://user-images.githubusercontent.com/44434337/90000203-89027200-dc98-11ea-8896-1c6f5a62fce5.jpg)  
+![Screenshot_2020-08-12-12-33-07-159_com example moviemviimpl](https://user-images.githubusercontent.com/44434337/90000203-89027200-dc98-11ea-8896-1c6f5a62fce5.jpg width = "400" height = "400")  
 
 ![Screenshot_2020-08-12-12-33-07-159_com example moviemviimpl](https://user-images.githubusercontent.com/44434337/90000304-a9323100-dc98-11ea-9895-203c4bf12e09.jpg)
 
