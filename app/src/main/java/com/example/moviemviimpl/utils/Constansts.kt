@@ -1,6 +1,7 @@
 package com.example.moviemviimpl.utils
 
 object Constants {
+    const val CURRENT_SCROLL_POSITION = "CURRENT_SCROLL_POSITION"
     const val CURRENT_MOVIE_ID = "CURRENT_MOVIE_ID"
     const val VIEW_PAGER_POSITION = "VIEW_PAGER_POSITION"
 
@@ -24,5 +25,8 @@ object Constants {
 
     const val ORDER_BY_TITLE = "order by title"
     const val ORDER_BY_YEAR = "order by year"
+
+    //TODO: Move to constants
+    const val LOCATION_PREMMISION_CODE = 1010
 
 }

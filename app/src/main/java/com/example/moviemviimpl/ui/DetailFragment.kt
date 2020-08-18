@@ -27,6 +27,7 @@ import com.example.moviemviimpl.model.MovieDetail
 import com.example.moviemviimpl.state.DetailScreenStateEvent
 import com.example.moviemviimpl.utils.*
 import com.example.moviemviimpl.viewmodels.DetailViewModel
+import com.example.moviemviimpl.viewmodels.extractWithSepreation
 import com.example.resclassex.adapters.OnMovieClickListener
 import com.google.android.material.appbar.CollapsingToolbarLayout
 import com.google.android.youtube.player.YouTubeStandalonePlayer
@@ -41,11 +42,14 @@ import kotlinx.coroutines.launch
 class DetailFragment
 constructor(
     private val viewModelFactory: ViewModelProvider.Factory
-) : Fragment(), OnPlayButtonClickListener, OnVideoClickListener, OnMovieClickListener, OnCastClickListener {
+) : Fragment(), OnPlayButtonClickListener, OnVideoClickListener, OnMovieClickListener,
+    OnCastClickListener {
     private val TAG = "DetailFragment"
 
     /**
-     *MainActivity communication
+     *
+     * MainActivity communication
+     *
      * **/
     private lateinit var uiCommunicationListener: UICommunicationListener
 
@@ -91,6 +95,8 @@ constructor(
     private val args: DetailFragmentArgs by navArgs()
     private var currentMovieID: Int? = null
 
+    private var scrollPosition: Int? = null
+
     private val detailViewModel: DetailViewModel by viewModels {
         viewModelFactory
     }
@@ -99,12 +105,8 @@ constructor(
         Log.d("viewpagerdebug", "onCreate: Befote change")
         savedInstanceState?.let { bundle ->
             (bundle[Constants.VIEW_PAGER_POSITION] as Int)?.let { position ->
-                Log.d("viewpagerdebug", "onCreate: Agter change")
-                Log.d("viewpagerdebug", "onCreate View Pager Position $position")
                 viewPagerPosition = position
-                Log.d("viewpagerdebug", "onCreate viewPagerPosition $viewPagerPosition")
             }
-
             (bundle[Constants.CURRENT_MOVIE_ID] as Int)?.let { movieID ->
                 currentMovieID = movieID
             }
@@ -117,20 +119,16 @@ constructor(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
-//        Log.d(TAG, "onCreateView: ")
         return inflater.inflate(R.layout.fragment_detail, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        Log.d(TAG, "onViewCreated: ")
-
-        setViewPager(view)
-        Log.d(TAG, "onViewCreated: After setViewPager")
 
         setRecyclerView(view)
-        Log.d(TAG, "onViewCreated: After setRecyclerView")
+
+        setViewPager(view)
+
 
         if (currentMovieID == null) {
             setMovieData(args.movieID)
@@ -138,14 +136,17 @@ constructor(
         }
 
 
+//        else {
+//            app_bar.setExpanded(false)
+//        }
+
         setupAppBar(view)
-        Log.d(TAG, "onViewCreated: After setupAppBar")
+
+
 
         subscribeMoviesObserver()
-        Log.d(TAG, "onViewCreated: After subscribeMoviesObserver")
 
         setStateEvents()
-        Log.d(TAG, "onViewCreated: After setStateEvents")
 
     }
 
@@ -168,10 +169,12 @@ constructor(
             LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
         similarMoviesRecyclerView.layoutManager = similarMoviesRecyclerViewLayoutManager
 
-        similarMoviesRecyclerView.addItemDecoration(SpacingItemDecoration(16))
 
         similarMoviesAdapter = SimilarMoviesAdapter(this)
         similarMoviesRecyclerView.adapter = similarMoviesAdapter
+
+        similarMoviesRecyclerView.addItemDecoration(SpacingItemDecoration(16))
+
     }
 
     private fun setMovieCastRecycler(view: View) {
@@ -180,11 +183,12 @@ constructor(
             LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
         movieCastRecyclerView.layoutManager = movieCastRecyclerViewLayoutManager
 
-        movieCastRecyclerView.addItemDecoration(SpacingItemDecoration(16))
-
 
         movieCastAdapter = MovieCastAdapter(this)
         movieCastRecyclerView.adapter = movieCastAdapter
+
+        movieCastRecyclerView.addItemDecoration(SpacingItemDecoration(16))
+
 
     }
 
@@ -194,11 +198,13 @@ constructor(
             LinearLayoutManager(activity, LinearLayoutManager.HORIZONTAL, false)
         movieVideoRecyclerView.layoutManager = movieVideoRecyclerViewLayoutManager
 
-        movieVideoRecyclerView.addItemDecoration(SpacingItemDecoration(16))
 
 
         movieVideoRecyclerAdapter = MovieDetailVideosRecyclerAdapter(this)
         movieVideoRecyclerView.adapter = movieVideoRecyclerAdapter
+
+        movieVideoRecyclerView.addItemDecoration(SpacingItemDecoration(16))
+
     }
 
     private fun setViewPager(view: View) {
@@ -228,7 +234,7 @@ constructor(
     }
 
     private fun setStateEvents() {
-        //TODO: Multiple time - fix this
+        //TODO: Multiple time - fix this(combine them to one state event - GetMovieDetail)
         detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieDetail)
         detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieImages)
         detailViewModel.setStateEvent(DetailScreenStateEvent.GetMovieTrailer)
@@ -333,6 +339,7 @@ constructor(
                  * Setup Similar Movies
                  *
                  * **/
+
                 viewState.movieDetailFields.similarMovies?.movies?.let {
 //                    Log.d(TAG, "similar movies $it")
                     if (it.isEmpty()) {
@@ -385,6 +392,13 @@ constructor(
          * */
         detailViewModel.stateMessage.observe(viewLifecycleOwner, Observer { stateMessage ->
             stateMessage?.let {
+                Log.d(TAG, "subscribeMoviesObserver: response ${it.response.message}")
+//                if (it.response.message == it.response.message) {
+//                    Log.d(TAG, " stateMessage subscribeMoviesObserver: STATE MESSAGE ERROR")
+//                    movie_detail_scrollview.visibility = GONE
+//                    error_text_detail.visibility = VISIBLE
+//
+//                }
                 uiCommunicationListener.onResponseReceived(
                     response = it.response,
                     stateMessageCallback = object : StateMessageCallback {
@@ -415,8 +429,34 @@ constructor(
         movie_detail_release_date_text.text = movie.releaseDate
         movie_detail_overview_text.text = movie.overview
 
-        val geners: String = detailViewModel.getGeners(movie.genres)
+        /**
+         *
+         * Genres list generator
+         *
+         * **/
+//        val geners: String = detailViewModel.getGeners(movie.genres)
+        /**
+         *
+         * See explaination about this list extension function uner viewmodels/Extension.kt
+         *
+         * **/
+        val geners = movie.genres.extractWithSepreation("Genres")
         movie_detail_genere_text.text = geners
+
+        /**
+         *
+         * Country list generator
+         *
+         * **/
+//        val countries: String = detailViewModel.getCountries(movie.productionCountries)
+        val countries = movie.productionCountries.extractWithSepreation("Production Countries")
+        movie_detail_countries_text.text = countries
+        movie_detail_countries_text.setOnClickListener {
+            Log.d(TAG, "setupFields: Clicked")
+            val action = DetailFragmentDirections.actionDetailFragmentToMapsFragment()
+            findNavController().navigate(action)
+        }
+
 
         movie_detail_rating_text.text = movie.voteAverage.toString()
     }
@@ -464,20 +504,15 @@ constructor(
 
     private fun resetUI() {
         viewPagerPosition = 0
-        movieVideoRecyclerView.smoothScrollToPosition(0)
-        movieCastRecyclerView.smoothScrollToPosition(0)
-        similarMoviesRecyclerView.smoothScrollToPosition(0)
-        movie_detail_scrollview.fullScroll(ScrollView.FOCUS_UP)
+        lifecycleScope.launch(Dispatchers.Main) {
+            movieVideoRecyclerView.smoothScrollToPosition(0)
+            movieCastRecyclerView.smoothScrollToPosition(0)
+            similarMoviesRecyclerView.smoothScrollToPosition(0)
+            movie_detail_scrollview.fullScroll(ScrollView.FOCUS_UP)
+        }
+
     }
 
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        try {
-            uiCommunicationListener = context as UICommunicationListener
-        } catch (e: ClassCastException) {
-            Log.e(TAG, "$context must implement UICommunicationListener")
-        }
-    }
 
     /**
      * !IMPORTANT!
@@ -487,7 +522,6 @@ constructor(
         Log.d("viewpagerdebug", "onSaveInstanceState: ")
         val sliderPosition = viewPager.currentItem
         Log.d("viewpagerdebug", "onSaveInstanceState: $sliderPosition")
-
 
 
         /**
@@ -517,7 +551,10 @@ constructor(
                 Constants.CURRENT_MOVIE_ID,
                 it
             )
-        }
+        } ?: outState.putInt(
+            Constants.CURRENT_MOVIE_ID,
+            args.movieID
+        )
 
         super.onSaveInstanceState(outState)
     }
@@ -529,6 +566,15 @@ constructor(
             findNavController().navigate(action)
         }
 
+    }
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        try {
+            uiCommunicationListener = context as UICommunicationListener
+        } catch (e: ClassCastException) {
+            Log.e(TAG, "$context must implement UICommunicationListener")
+        }
     }
 
 

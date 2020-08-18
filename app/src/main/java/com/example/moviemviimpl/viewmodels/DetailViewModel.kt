@@ -212,4 +212,25 @@ constructor(
 
     }
 
+    fun getCountries(productionCountries: List<ProductionCountry>?): String {
+        var stringCountries = "There is no available genres for this movie"
+
+
+        productionCountries?.let {
+            stringCountries = ""
+
+            productionCountries.forEachIndexed { index, productionCountry ->
+                stringCountries += if (index == 0) {
+                    "${productionCountry.name}"
+                } else {
+                    ", ${productionCountry.name}"
+                }
+            }
+        }
+        return stringCountries
+    }
+
+
+
+
 }

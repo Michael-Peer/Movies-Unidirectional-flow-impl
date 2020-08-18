@@ -1,12 +1,14 @@
 package com.example.moviemviimpl.ui
 
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.Toolbar
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.afollestad.materialdialogs.MaterialDialog
 import com.afollestad.materialdialogs.callbacks.onDismiss
 import com.example.moviemviimpl.BaseApplication
@@ -21,6 +23,8 @@ import javax.inject.Inject
 @ExperimentalCoroutinesApi
 class MainActivity : AppCompatActivity(), UICommunicationListener {
     private val TAG = "MainActivity"
+
+
 
 
     @Inject
@@ -92,8 +96,7 @@ class MainActivity : AppCompatActivity(), UICommunicationListener {
             }
 
             is UIComponentType.None -> {
-                // This would be a good place to send to your Error Reporting
-                // software of choice (ex: Firebase crash reporting)
+                //TODO: Firebase Crashlyst
                 Log.i(TAG, "onResponseReceived: ${response.message}")
                 stateMessageCallback.removeMessageFromStack()
             }
@@ -158,7 +161,23 @@ class MainActivity : AppCompatActivity(), UICommunicationListener {
     }
 
 
-    override fun isStoragePermissionGranted(): Boolean {
+    override fun isLocationPermissionGranted(): Boolean {
+        if (ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_FINE_LOCATION
+            )
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            ActivityCompat.requestPermissions(
+                this,
+                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                Constants.LOCATION_PREMMISION_CODE
+            )
+            return false
+        } else {
+            // Permission has already been granted
+            return true
+        }
 //        if (
 //            ContextCompat.checkSelfPermission(this,
 //                Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -181,7 +200,6 @@ class MainActivity : AppCompatActivity(), UICommunicationListener {
 //            // Permission has already been granted
 //            return true
 //        }
-        return true
     }
 
 //    abstract override fun displayProgressBar(isLoading: Boolean)

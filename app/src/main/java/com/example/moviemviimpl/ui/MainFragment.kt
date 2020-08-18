@@ -424,17 +424,17 @@ constructor(
 //        movies_recycler_view.adapter = null
 //            getActivity().setSupportActionBar(null)
         (activity as AppCompatActivity).setSupportActionBar(null) //remove
-        movies_recycler_view.addOnAttachStateChangeListener(object :
-            View.OnAttachStateChangeListener {
-            override fun onViewDetachedFromWindow(v: View?) {
-                movies_recycler_view.adapter = null;
-            }
-
-            override fun onViewAttachedToWindow(v: View?) {
-                TODO("Not yet implemented")
-            }
-
-        })
+//        movies_recycler_view.addOnAttachStateChangeListener(object :
+//            View.OnAttachStateChangeListener {
+//            override fun onViewDetachedFromWindow(v: View?) {
+//                movies_recycler_view.adapter = null;
+//            }
+//
+//            override fun onViewAttachedToWindow(v: View?) {
+//                TODO("Not yet implemented")
+//            }
+//
+//        })
         super.onDestroyView()
     }
 

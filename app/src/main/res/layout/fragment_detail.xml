@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/coordinator"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -53,6 +54,8 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/movie_detail_scrollview"
         android:layout_width="match_parent"
@@ -60,6 +63,7 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/constraint_scroll_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent">
 
@@ -133,6 +137,20 @@
                 android:text="TextView"
                 app:layout_constraintStart_toEndOf="@+id/movie_detail_title_poster"
                 app:layout_constraintTop_toBottomOf="@+id/movie_detail_genere_text" />
+
+            <TextView
+                android:id="@+id/movie_detail_countries_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="16dp"
+                android:text="TextView"
+                app:layout_constrainedWidth="true"
+                app:layout_constraintEnd_toStartOf="@+id/movie_detail_rating_text"
+                app:layout_constraintHorizontal_bias="0.0"
+                app:layout_constraintStart_toEndOf="@+id/movie_detail_title_poster"
+                app:layout_constraintTop_toBottomOf="@+id/movie_detail_release_date_text" />
 
             <TextView
                 android:id="@+id/movie_detail_overview_title"
@@ -243,24 +261,40 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/movie_detail_similar_recyclerview" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/movie_detail_reviews_recyclerview"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="8dp"
-                android:orientation="horizontal"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/movie_detail_reviews_title" />
+
+
+            <!--            <androidx.recyclerview.widget.RecyclerView-->
+<!--                android:id="@+id/movie_detail_reviews_recyclerview"-->
+<!--                android:layout_width="0dp"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginStart="16dp"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                android:orientation="horizontal"-->
+<!--                app:layout_constraintStart_toStartOf="parent"-->
+<!--                app:layout_constraintTop_toBottomOf="@+id/movie_detail_reviews_title" />-->
+
 
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+
+
     </androidx.core.widget.NestedScrollView>
 
-    <WebView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"/>
+<!--<FrameLayout-->
+<!--    android:id="@+id/error_text_detail"-->
+<!--    android:visibility="gone"-->
+<!--    android:layout_width="match_parent"-->
+<!--    android:layout_height="match_parent">-->
+<!--    <TextView-->
+<!--    android:layout_width="wrap_content"-->
+<!--    android:layout_height="wrap_content"-->
+<!--    android:layout_gravity="center"-->
+<!--    android:text="ERROR"-->
+<!--    android:textSize="30sp"-->
+<!--/>-->
+<!--</FrameLayout>-->
 
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
