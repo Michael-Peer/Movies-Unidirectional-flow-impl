@@ -10,6 +10,12 @@ Detaild explaination to almost each step in inside the code
 
 In process: Pagingation (Both cache & network) Paging 3? Custom logic?
 
+Map intergtration - Done
+
+Location, Direction and Geofencing APIs integration - In process
+
+Centralized permission handling - Done
+
 # Known bugs
 
 Main slider returns to first position after configuration change - FIXED
