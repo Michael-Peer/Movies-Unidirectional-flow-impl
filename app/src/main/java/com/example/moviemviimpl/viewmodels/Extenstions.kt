@@ -1,5 +1,7 @@
 package com.example.moviemviimpl.viewmodels
 
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import com.example.moviemviimpl.model.Genre
 import com.example.moviemviimpl.model.ProductionCountry
 
@@ -48,6 +50,11 @@ fun getSepreation(name: String?, index: Int): String {
     }
     return ""
 }
+
+
+val FragmentManager.currentNavigationFragment: Fragment?
+    get() = primaryNavigationFragment?.childFragmentManager?.fragments?.first()
+
 
 //fun <T> List<T>?.extractClassMemberItemAsList() : List<T>? {
 //

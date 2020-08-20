@@ -14,17 +14,17 @@ import com.afollestad.materialdialogs.callbacks.onDismiss
 import com.example.moviemviimpl.BaseApplication
 import com.example.moviemviimpl.R
 import com.example.moviemviimpl.utils.*
+import com.example.moviemviimpl.viewmodels.currentNavigationFragment
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import javax.inject.Inject
 
+
 @FlowPreview
 @ExperimentalCoroutinesApi
 class MainActivity : AppCompatActivity(), UICommunicationListener {
     private val TAG = "MainActivity"
-
-
 
 
     @Inject
@@ -165,12 +165,19 @@ class MainActivity : AppCompatActivity(), UICommunicationListener {
         if (ContextCompat.checkSelfPermission(
                 this,
                 android.Manifest.permission.ACCESS_FINE_LOCATION
-            )
-            != PackageManager.PERMISSION_GRANTED
+            ) != PackageManager.PERMISSION_GRANTED
+            && ContextCompat.checkSelfPermission(
+                this,
+                android.Manifest.permission.ACCESS_COARSE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
         ) {
+            //  Ask for permission
             ActivityCompat.requestPermissions(
                 this,
-                arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION),
+                arrayOf(
+                    android.Manifest.permission.ACCESS_FINE_LOCATION,
+                    android.Manifest.permission.ACCESS_COARSE_LOCATION
+                ),
                 Constants.LOCATION_PREMMISION_CODE
             )
             return false
@@ -201,6 +208,7 @@ class MainActivity : AppCompatActivity(), UICommunicationListener {
 //            return true
 //        }
     }
+
 
 //    abstract override fun displayProgressBar(isLoading: Boolean)
 
@@ -303,6 +311,50 @@ class MainActivity : AppCompatActivity(), UICommunicationListener {
         }
 
 
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        when (requestCode) {
+            Constants.LOCATION_PREMMISION_CODE -> {
+                if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                    // Permission is granted.
+                    Log.d(TAG, "onRequestPermissionsResult: GRANTED")
+                    val frag = supportFragmentManager.currentNavigationFragment
+                    Log.d(TAG, "onRequestPermissionsResult: $frag")
+
+                    when (frag) {
+                        is MapsFragment -> {
+                            frag.onPermissionGranted()
+                        }
+                    }
+
+
+                } else {
+                    // Explain to the user that the feature is unavailable because
+                    // the features requires a permission that the user has denied.
+                    Log.d(TAG, "onRequestPermissionsResult: NOT GRANTED")
+
+                    onResponseReceived(
+                        response = Response(
+                            message = "In order to use this screen, you need to grant us location permission",
+                            uiComponentType = UIComponentType.Dialog,
+                            messageType = MessageType.Info
+                        ),
+                        stateMessageCallback = object : StateMessageCallback {
+                            override fun removeMessageFromStack() {
+
+                            }
+
+                        }
+                    )
+                }
+                return
+            }
+        }
     }
 }
 

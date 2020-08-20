@@ -15,4 +15,5 @@ interface UICommunicationListener {
     fun hideSoftKeyboard()
 
     fun isLocationPermissionGranted(): Boolean
+
 }
