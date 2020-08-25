@@ -453,8 +453,12 @@ constructor(
         movie_detail_countries_text.text = countries
         movie_detail_countries_text.setOnClickListener {
             Log.d(TAG, "setupFields: Clicked")
-            val action = DetailFragmentDirections.actionDetailFragmentToMapsFragment()
-            findNavController().navigate(action)
+            movie.posterPath?.let {
+                val action =
+                    DetailFragmentDirections.actionDetailFragmentToMapsFragment(it as String)
+                findNavController().navigate(action)
+            }
+
         }
 
 

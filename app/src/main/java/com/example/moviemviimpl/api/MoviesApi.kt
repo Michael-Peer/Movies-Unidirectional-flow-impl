@@ -50,6 +50,14 @@ interface MoviesApi {
         @Query("api_key") apiKey: String
     ) : Movies
 
+    /**
+     *
+     * Move to new service
+     *
+     * **/
+
+
+
 
 }
 

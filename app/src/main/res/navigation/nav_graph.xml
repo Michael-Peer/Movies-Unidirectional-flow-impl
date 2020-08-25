@@ -61,5 +61,8 @@
         android:label="maps_fragment"
         tools:layout="@layout/fragment_maps">
 
+        <argument
+            android:name="moviePostPathUrl"
+            app:argType="string" />
     </fragment>
 </navigation>

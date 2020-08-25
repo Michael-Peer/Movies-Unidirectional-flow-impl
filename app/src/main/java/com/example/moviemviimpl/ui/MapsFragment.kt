@@ -2,6 +2,8 @@ package com.example.moviemviimpl.ui
 
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.graphics.Color
 import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
@@ -12,17 +14,30 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.coroutineScope
+import androidx.navigation.fragment.navArgs
+import com.bumptech.glide.Glide
 import com.example.moviemviimpl.R
+import com.example.moviemviimpl.api.DummyRetrofit
+import com.example.moviemviimpl.receivers.LocationBroadcastReceiver
+import com.example.moviemviimpl.utils.BitmapHelper
+import com.example.moviemviimpl.utils.Constants
 import com.example.moviemviimpl.utils.UICommunicationListener
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.Task
+import com.google.maps.android.PolyUtil
 import kotlinx.android.synthetic.main.fragment_maps.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 
 class MapsFragment : Fragment() {
@@ -37,12 +52,15 @@ class MapsFragment : Fragment() {
 
     private lateinit var uiCommunicationListener: UICommunicationListener
 
+
     /**
      *
      * Location
      *
      * **/
     private lateinit var fusedLocationClient: FusedLocationProviderClient
+
+    private lateinit var map: GoogleMap
 
     /**
      *
@@ -51,28 +69,101 @@ class MapsFragment : Fragment() {
      * **/
     private var lat: Double? = null
     private var lng: Double? = null
-    private lateinit var location: LatLng
+    private lateinit var originLocation: LatLng
+    private lateinit var destLocation: LatLng
+
+    var polyline: MutableList<LatLng>? = null
+
+    /**
+     *
+     * Maps Arguments we're getting from DetailFragment.
+     * Contains poster image url
+     *
+     * **/
+    private val args: MapsFragmentArgs by navArgs()
+
+    /**
+     *
+     * BroadcastReceivers
+     *
+     * **/
+    private val locationBroadcastReceiver: LocationBroadcastReceiver = LocationBroadcastReceiver()
 
 
+    /**
+     * Manipulates the map once available.
+     * This callback is triggered when the map is ready to be used.
+     * This is where we can add markers or lines, add listeners or move the camera.
+     * In this case, we just add a marker near Sydney, Australia.
+     * If Google Play services is not installed on the device, the user will be prompted to
+     * install it inside the SupportMapFragment. This method will only be triggered once the
+     * user has installed Google Play services and returned to the app.
+     */
     private val callback = OnMapReadyCallback { googleMap ->
+
         /**
-         * Manipulates the map once available.
-         * This callback is triggered when the map is ready to be used.
-         * This is where we can add markers or lines, add listeners or move the camera.
-         * In this case, we just add a marker near Sydney, Australia.
-         * If Google Play services is not installed on the device, the user will be prompted to
-         * install it inside the SupportMapFragment. This method will only be triggered once the
-         * user has installed Google Play services and returned to the app.
-         */
-        location = if (lat == null || lng == null) {
-            LatLng(-34.0, 151.0)
+         *
+         * Set googleMap to global variable
+         *
+         * **/
+        map = googleMap
+
+
+        /**
+         *
+         * Set origin location of the user
+         *
+         * **/
+        originLocation = if (lat == null || lng == null) {
+            LatLng(-34.0, 151.0) //DEFAULT
         } else {
             LatLng(lat!!, lng!!)
         }
 
+        /**
+         *
+         * Set destination location of the user
+         * *(DUMMY POINTS)*
+         * **/
+        destLocation = LatLng(lat!! - 1, lng!! + 1)
 
-        googleMap.addMarker(MarkerOptions().position(location).title("Marker in Sydney"))
-        googleMap.moveCamera(CameraUpdateFactory.newLatLng(location))
+        /**
+         *
+         * Get polyline points
+         *
+         * **/
+        getDirectionData(origin = originLocation, dest = destLocation)
+
+
+        /**
+         *
+         * Set markers on map
+         *
+         * **/
+        setMapMarkers()
+
+        /**
+         *
+         * Set camera data on map
+         *
+         * **/
+        setMapCamera()
+
+        /**
+         *
+         * Set poster image on dest location
+         *
+         * **/
+        setOverlayImage()
+
+        /**
+         *
+         * Set circle on origin location
+         *
+         * **/
+        setCircle()
+
+
     }
 
     override fun onCreateView(
@@ -192,6 +283,10 @@ class MapsFragment : Fragment() {
                             Log.d(TAG, "getUserLastLocation: LAT ${it.latitude}")
                             Log.d(TAG, "getUserLastLocation: LNG ${it.longitude}")
                             setLngLat(it.longitude, it.latitude)
+//                            getUrlPath(
+//                                LatLng(it.latitude, it.longitude),
+//                                LatLng(it.latitude - 1, it.longitude + 1)
+//                            )
                             initMap()
 
                         }
@@ -304,14 +399,228 @@ class MapsFragment : Fragment() {
         mapFragment?.getMapAsync(callback)
     }
 
+    /**
+     *
+     * In this function, we're getting the data from Direction API.
+     * In this screen we only care about the points so we can draw polyline TODO: Remove all the Direction models except from the relevant data
+     *
+     * **/
+    private fun getDirectionData(origin: LatLng, dest: LatLng) {
+        val originStr = "${origin.latitude},${origin.longitude}"
+        val destStr = "${dest.latitude},${dest.longitude}"
+        val sensor = "false";
+        val mode = "driving"
+
+        val param = "$originStr&$destStr&$sensor&$mode"
+        val outputFormat = "json"
+        val apikey = Constants.API_KEY
+
+//        return "\"https://maps.googleapis.com/maps/api/directions/$outputFormat?$param$apikey"
+
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val res = DummyRetrofit.apiService.getRoute(
+                output = outputFormat,
+                apiKey = "AIzaSyBalRSBvHeMXcPTffLF3xVHGPYkeWF-SE0",
+                origin = originStr,
+                dest = destStr,
+                sensor = sensor,
+                mode = mode
+            )
+
+
+            /**
+             *
+             * Get the polyline points of the first route
+             *
+             * **/
+            res.routes?.let {
+
+                polyline = PolyUtil.decode(it[0].overviewPolyline?.points)
+                Log.d(TAG, "DEBUG API $polyline")
+            }
+
+            /**
+             *
+             * ref: https://stackoverflow.com/questions/59491707/how-to-wait-for-end-of-a-coroutine
+             *
+             * Crucial concept about coroutine OR: Why do I call setPolylineOnMap here and not in map callback
+             *
+             * The main thing to understand here is that code within coroutine is by default executed sequentially.
+             *  I.e. coroutine is executed asynchronously in relation to "sibling" code, but code within coroutine executes synchronously by default.
+             *
+             *  So to summarize - if the functions are inside the coroutine it will be execute synchronously: FunctionB will wait to FunctionA to end and then, and only then, FunctionA will execute
+             *  and if function A is inside coroutine, And functionB is outside coroutine it will be execute asynchronously: FunctionB WON'T wait till functionA finish his job
+             *
+             *
+             * **/
+            withContext(Dispatchers.Main) {
+                /**
+                 *
+                 * Draw polyline points
+                 *
+                 * **/
+                setPolylineOnMap()
+            }
+        }
+    }
+
+    private fun setMapCamera() {
+        map.moveCamera(CameraUpdateFactory.newLatLng(originLocation))
+
+        val builder = LatLngBounds.Builder()
+        builder.include(originLocation)
+        builder.include(destLocation)
+        val bounds = builder.build()
+        map.animateCamera(CameraUpdateFactory.newLatLngBounds(bounds, 100), 2000, null)
+    }
+
+    /**
+     *
+     * Circle are like polygons, but we can specify radius.
+     *
+     * For example: if we set circle with 1000m radius on the origin LatLng, we'll get 1000m radius circle drawn on origin LatLng
+     *
+     *
+     * **/
+    private fun setCircle() {
+        val circleOptions = CircleOptions()
+            .center(originLocation)
+            .radius(10000.0)
+            .fillColor(R.color.red)
+
+        val circle = map.addCircle(circleOptions)
+    }
+
+    private fun setOverlayImage() {
+        val currentUrl = "https://image.tmdb.org/t/p/w400${args.moviePostPathUrl}"
+
+        val overlaySize = 15000f
+
+        lifecycle.coroutineScope.launch(Dispatchers.IO) {
+            val androidOverlay = GroundOverlayOptions()
+                .image(
+                    BitmapDescriptorFactory.fromBitmap(
+                        Glide.with(requireContext())
+                            .asBitmap()
+                            .load(currentUrl)
+                            .submit()
+                            .get()
+                    )
+                )
+                .position(destLocation, overlaySize)
+            withContext(Dispatchers.Main) {
+                map.addGroundOverlay(androidOverlay)
+
+            }
+        }
+    }
+
+    private fun setMapMarkers() {
+
+        val movieIcon by lazy {
+            val color = ContextCompat.getColor(requireContext(), R.color.colorPrimary)
+            BitmapHelper.vectorToBitmap(
+                requireContext(),
+                R.drawable.ic_baseline_local_movies_24,
+                color
+            )
+        }
+
+        map.addMarker(
+            MarkerOptions().position(originLocation).title("Marker in Sydney")
+                .snippet("!!!ORIGON!!!")
+        )
+        map.addMarker(
+            MarkerOptions().position(destLocation).title("Marker in Sydney").snippet("!!!DEST!!!")
+                .icon(movieIcon)
+//                .alpha(0.5f)
+
+
+        )
+    }
+
+    private fun setPolylineOnMap() {
+        Log.d(TAG, "DEBUG setPolylineOnMap $polyline")
+
+        val poly1 = map.addPolyline(
+            PolylineOptions()
+                .color(Color.BLACK)
+                .width(15f)
+                .addAll(polyline)
+        )
+
+        val poly2 = map.addPolyline(
+            PolylineOptions()
+                .color(Color.GREEN)
+                .width(15f)
+        )
+
+        /**
+         *
+         * We will draw the black line first, which is represent the actual route between dest.
+         * Then, we'll draw the green line in a duration of 4 sec(4000ms).
+         *
+         * We'll use LinearInterpolator that will give us percentages between 0 to 100 every 4 sec.
+         * So after every 4 sec, we'll draw some part of the line with the help of interpolator value,
+         * And some index from the points of the black line and this seems like we're animation the green line over the black line
+         *
+         * **/
+//        val polylineAnimator = MapAnimationUtils.polylineAnimator()
+//        polylineAnimator.addUpdateListener { valueAnimator ->
+//            val percentValue = (valueAnimator.animatedValue as Int)
+//            val index = (poly1?.points!!.size) * (percentValue / 100.0f).toInt()
+//            poly2?.points = poly1.points!!.subList(0, index)
+//        }
+//        polylineAnimator.start()
+//
+//        updateCarLocation(destLocation)
+
+    }
+
 
     override fun onAttach(context: Context) {
         super.onAttach(context)
+        val intentFilter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
+        context.registerReceiver(locationBroadcastReceiver, intentFilter)
         try {
             uiCommunicationListener = context as UICommunicationListener
         } catch (e: ClassCastException) {
             Log.e(TAG, "$context must implement UICommunicationListener")
         }
     }
+
+    override fun onDetach() {
+        super.onDetach()
+        context?.unregisterReceiver(locationBroadcastReceiver)
+
+    }
+
+    /**
+     *
+     * Register receivers
+     *
+     * **/
+    override fun onStart() {
+        super.onStart()
+
+
+        /**
+         * For Activity
+         * **/
+//        registerReceiver(gpsReceiver, new IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION));
+
+    }
+
+    /**
+     *
+     * Unregister receivers
+     *
+     * **/
+    override fun onStop() {
+        super.onStop()
+
+    }
+
 
 }
